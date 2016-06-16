@@ -1,0 +1,27 @@
+{
+  "name": "iris-application-core",
+  "version": "1.0.0",
+  "description": "iris core models, classes and helpers",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/artificial-life/iris-application-core.git"
+  },
+  "author": "SS",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/artificial-life/iris-application-core/issues"
+  },
+  "homepage": "https://github.com/artificial-life/iris-application-core#readme",
+  "dependencies": {
+    "bluebird": "^3.4.0",
+    "eventemitter2": "^1.0.3",
+    "lodash": "^4.13.1",
+    "moment": "^2.13.0",
+    "node-fetch": "^1.5.3",
+    "whatwg-fetch": "^1.0.0"
+  }
+}

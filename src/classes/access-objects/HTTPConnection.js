@@ -3,7 +3,7 @@
 let _ = require('lodash');
 let Promise = require('bluebird');
 
-var fetch = require('node-fetch');
+let fetch = require('node-fetch');
 
 function HttpConnectionMethod(server, port) {
 
