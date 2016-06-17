@@ -1,7 +1,7 @@
 'use strict'
 
 let BaseWorkstation = require('./BaseWorkstation.js');
-let SharedEntities = require('../SharedEntities.js');
+let SharedEntities = require('../access-objects/SharedEntities.js');
 
 class RoomdisplayWorkstation extends BaseWorkstation {
   constructor(user) {

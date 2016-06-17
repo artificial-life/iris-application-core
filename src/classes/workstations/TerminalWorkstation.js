@@ -3,10 +3,10 @@
 let _ = require('lodash');
 let Promise = require('bluebird');
 
-let connection = require('../connection-instance.js');
+let connection = require('../access-objects/connection-instance.js');
 let Ticket = require('../ticket.js');
 let BaseWorkstation = require('./BaseWorkstation.js');
-let SharedEntities = require('../SharedEntities.js');
+let SharedEntities = require('../access-objects/SharedEntities.js');
 
 class TerminalWorkstation extends BaseWorkstation {
 	constructor(user) {

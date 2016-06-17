@@ -4,8 +4,8 @@ let _ = require('lodash');
 let Promise = require('bluebird');
 
 let EventEmitter2 = require('eventemitter2').EventEmitter2;
-let SharedEntities = require('../SharedEntities.js');
-let connection = require('../connection-instance.js');
+let SharedEntities = require('../access-objects/SharedEntities.js');
+let connection = require('../access-objects/connection-instance.js');
 
 class BaseWorkstation extends EventEmitter2 {
   constructor(user, type) {

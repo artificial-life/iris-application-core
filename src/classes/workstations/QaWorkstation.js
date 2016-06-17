@@ -1,9 +1,9 @@
 'use strict'
 
-let settings = require('../Settings.js');
+let settings = require('../access-objects/Settings.js');
 let BaseWorkstation = require('./BaseWorkstation.js');
 let Ticket = require('../ticket.js');
-let SharedEntities = require('../SharedEntities.js');
+let SharedEntities = require('../access-objects/SharedEntities.js');
 
 class QaWorkstation extends BaseWorkstation {
   constructor(user) {

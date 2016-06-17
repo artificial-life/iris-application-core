@@ -1,7 +1,7 @@
 'use strict'
 
 let BaseWorkstation = require('./BaseWorkstation.js');
-let connection = require('../connection-instance.js');
+let connection = require('../access-objects/connection-instance.js');
 
 class ReportWorkstation {
   constructor(user) {

@@ -1,22 +1,11 @@
-'use strict'
-
-let Connection = require('./classes/Connection.js');
-
-let _ = require('lodash');
-
-let connection = new Connection();
-
-class Iris {
-	constructor(ConnectionProviders, SettingsStorage) {
-		_.forEach(ConnectionProviders, provider => connection.addConnectionProvider(provider))
-	}
+module.exports = {
+  'BaseWorkstation': require('./classes/workstations/BaseWorkstation.js'),
+  'ControlPanelWorkstation': require('./classes/workstations/ControlPanelWorkstation.js'),
+  'DigitalDisplayWorkstation': require('./classes/workstations/DigitalDisplayWorkstation.js'),
+  'PandoraBoxWorkstation': require('./classes/workstations/PandoraBoxWorkstation.js'),
+  'QaWorkstation': require('./classes/workstations/QaWorkstation.js'),
+  'ReceptionWorkstation': require('./classes/workstations/ReceptionWorkstation.js'),
+  'ReportWorkstation': require('./classes/workstations/ReportWorkstation.js'),
+  'RoomdisplayWorkstation': require('./classes/workstations/RoomdisplayWorkstation.js'),
+  'TerminalWorkstation': require('./classes/workstations/TerminalWorkstation.js')
 }
-
-let socket = require('./SocketConnection.js');
-let http = require('./HTTPConnection.js');
-let IRIS = new Iris({
-	socket,
-	http
-}, {});
-
-module.exports = IRIS

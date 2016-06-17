@@ -1,9 +1,9 @@
 'use strict'
 
-let connection = require('../connection-instance.js');
+let connection = require('../access-objects/connection-instance.js');
 let BaseWorkstation = require('./BaseWorkstation.js');
 let Ticket = require('../ticket.js');
-let SharedEntities = require('../SharedEntities.js');
+let SharedEntities = require('../access-objects/SharedEntities.js');
 
 class PandoraBoxWorkstation extends BaseWorkstation {
   constructor(user) {
