@@ -73,7 +73,7 @@ class TerminalWorkstation extends BaseWorkstation {
 			code: pin
 		})
 
-		return request.then((data) => data.length ? this.makeTicket(data[0]) : false);
+		return request.then((data) => data.success ? this.makeTicket(data.ticket) : false);
 	}
 	makeTicket(data) {
 		let ticket = new Ticket(data, this);
