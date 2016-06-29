@@ -1,46 +1,50 @@
-var gulp = require('gulp');
-var browserify = require('browserify');
-var gutil = require('gulp-util');
-var tap = require('gulp-tap');
-var buffer = require('gulp-buffer');
-var sourcemaps = require('gulp-sourcemaps');
+'use strict';
+
 var babel = require('gulp-babel');
 var uglify = require('gulp-uglify');
 
-gulp.task('js', function() {
+var watchify = require('watchify');
+var browserify = require('browserify');
+var gulp = require('gulp');
+var source = require('vinyl-source-stream');
+var buffer = require('vinyl-buffer');
+var gutil = require('gulp-util');
+var sourcemaps = require('gulp-sourcemaps');
+var assign = require('lodash.assign');
 
-  return gulp.src('src/browser.js', {
-      read: false
-    }) // no need of reading file because browserify does.
+// add custom browserify options here
+var customOpts = {
+  entries: ['./src/browser.js'],
+  debug: true,
+  "transform": ["browserify-shim"]
+};
+var opts = assign({}, watchify.args, customOpts);
+var b = watchify(browserify(opts));
 
-  // transform file objects using gulp-tap plugin
-  .pipe(tap(function(file) {
+// add transformations here
+// i.e. b.transform(coffeeify);
 
-    gutil.log('bundling ' + file.path);
+gulp.task('js', bundle); // so you can run `gulp js` to build the file
+b.on('update', bundle); // on any dep update, runs the bundler
+b.on('log', gutil.log); // output build logs to terminal
 
-    // replace file contents with browserify's bundle stream
-    file.contents = browserify(file.path, {
-      debug: true
-    }).bundle();
-
-  }))
-
-  // transform streaming contents into buffer contents (because gulp-sourcemaps does not support streaming contents)
-  .pipe(buffer())
-
-  // load and init sourcemaps
-  .pipe(sourcemaps.init({
-    loadMaps: true
-  }))
-
-  .pipe(babel({
+function bundle() {
+  return b.bundle()
+    // log errors if they happen
+    .on('error', gutil.log.bind(gutil, 'Browserify Error'))
+    .pipe(source('browser.js'))
+    // optional, remove if you don't need to buffer file contents
+    .pipe(buffer())
+    .pipe(babel({
       comments: false,
       "presets": ["es2015"]
     }))
     .pipe(uglify())
-    // write sourcemaps
-    // .pipe(sourcemaps.write('./'))
-
-  .pipe(gulp.dest('dest'));
-
-});
+    // optional, remove if you dont want sourcemaps
+    .pipe(sourcemaps.init({
+      loadMaps: true
+    })) // loads map from browserify file
+    // Add transformation tasks to the pipeline here.
+    .pipe(sourcemaps.write('./')) // writes .map file
+    .pipe(gulp.dest('./dest'));
+}
