@@ -187,6 +187,12 @@ class ControlPanelWorkstation extends BaseWorkstation {
 			ticket: ticket.getId()
 		}));
 	}
+	routeTicket(ticket, route) {
+		return this.wakeUpNeo().then(() => connection.request('/queue/set-route', {
+			ticket: ticket.getId(),
+			route: route
+		}));
+	}
 	wakeUpNeo() {
 		return this.user.isPaused() ? this.user.resume() : Promise.resolve(true);
 	}
