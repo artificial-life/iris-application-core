@@ -14,9 +14,9 @@ var assign = require('lodash.assign');
 
 // add custom browserify options here
 var customOpts = {
-  entries: ['./src/browser.js'],
-  debug: true,
-  "transform": ["browserify-shim"]
+	entries: ['./src/browser.js'],
+	debug: true,
+	"transform": ["browserify-shim"]
 };
 var opts = assign({}, watchify.args, customOpts);
 var b = watchify(browserify(opts));
@@ -29,22 +29,22 @@ b.on('update', bundle); // on any dep update, runs the bundler
 b.on('log', gutil.log); // output build logs to terminal
 
 function bundle() {
-  return b.bundle()
-    // log errors if they happen
-    .on('error', gutil.log.bind(gutil, 'Browserify Error'))
-    .pipe(source('browser.js'))
-    // optional, remove if you don't need to buffer file contents
-    .pipe(buffer())
-    .pipe(babel({
-      comments: false,
-      "presets": ["es2015"]
-    }))
-    .pipe(uglify())
-    // optional, remove if you dont want sourcemaps
-    .pipe(sourcemaps.init({
-      loadMaps: true
-    })) // loads map from browserify file
-    // Add transformation tasks to the pipeline here.
-    .pipe(sourcemaps.write('./')) // writes .map file
-    .pipe(gulp.dest('./dest'));
+	return b.bundle()
+		// log errors if they happen
+		.on('error', gutil.log.bind(gutil, 'Browserify Error'))
+		.pipe(source('browser.js'))
+		// optional, remove if you don't need to buffer file contents
+		.pipe(buffer())
+		.pipe(babel({
+			comments: false,
+			"presets": ["es2015"]
+		}))
+		.pipe(uglify())
+		// optional, remove if you dont want sourcemaps
+		.pipe(sourcemaps.init({
+			loadMaps: true
+		})) // loads map from browserify file
+		// Add transformation tasks to the pipeline here.
+		.pipe(sourcemaps.write('./')) // writes .map file
+		.pipe(gulp.dest('./build'));
 }

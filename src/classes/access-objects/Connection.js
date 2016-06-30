@@ -4,7 +4,9 @@ let _ = require('lodash');
 let Promise = require('bluebird');
 
 let EventEmitter2 = require('eventemitter2').EventEmitter2;
-let settings = require('./Settings.js');
+let Settings = require('./Settings.js');
+
+let settings = new Settings();
 
 class Connection extends EventEmitter2 {
 	constructor() {
@@ -15,7 +17,7 @@ class Connection extends EventEmitter2 {
 	addConnectionProvider(provider) {
 		let port = settings.getItem('api_port');
 		let server = settings.getItem('api_server');
-		let method = new provider(server, port);
+		let method = _.isFunction(provider) ? new provider(server, port) : provider.getMethod(server, port);
 		console.log('Connection: method added %s on ip %s:%s', method.name, server, port);
 
 		if (_.isFunction(method.onDisconnect)) method.onDisconnect((reason) => {
@@ -64,7 +66,5 @@ class Connection extends EventEmitter2 {
 		return _.map(this.methods, (method) => method.close())
 	}
 }
-
-
 
 module.exports = Connection;

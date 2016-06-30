@@ -1,7 +1,8 @@
 'use strict'
 
 let _ = require('lodash');
-let connection = require('./connection-instance.js');
+let Connection = require('./connection-instance.js');
+let connection = new Connection();
 
 let storage = {};
 let makeUri = function (entity_name) {

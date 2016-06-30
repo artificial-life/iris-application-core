@@ -13,10 +13,12 @@ let default_queue_data = {
 let _ = require('lodash');
 let Promise = require('bluebird');
 
-let connection = require('../access-objects/connection-instance.js');
+let Connection = require('../access-objects/connection-instance.js');
 let Ticket = require('../ticket.js');
 let BaseWorkstation = require('./BaseWorkstation.js');
 let SharedEntities = require('../access-objects/SharedEntities.js');
+
+let connection = new Connection();
 
 //@NOTE: rework it pls, but now I have no time to decide how it would be better
 let ReportWorkstation = require('./ReportWorkstation');

@@ -10,4 +10,6 @@ let connection = new Connection();
 // connection.addConnectionProvider(http);
 // connection.addConnectionProvider(socket);
 
-module.exports = connection;
+module.exports = function () {
+	return connection;
+};

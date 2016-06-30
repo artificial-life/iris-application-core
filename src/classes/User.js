@@ -4,14 +4,19 @@ let _ = require('lodash');
 let Promise = require('bluebird');
 
 let EventEmitter2 = require('eventemitter2').EventEmitter2;
+let Settings = require('./access-objects/Settings.js');
+let Connection = require('./access-objects/connection-instance.js');
 
-let settings = require('./Settings.js');
-let connection = require('./connection-instance.js');
+let connection = new Connection();
+let settings = new Settings();
 
 
 function discover(device_type) {
 	let model_name = _.upperFirst(_.camelCase(device_type + '-workstation'));
-	return require('./workstations/' + model_name + '.js');
+	return window.IRIS[model_name];
+	//@NOTE: do something with it later
+	// @NOTE: may be it would be better to use npm install --save-dev aliasify
+	// return require('./workstations/' + model_name + '.js');
 }
 
 class User extends EventEmitter2 {
@@ -33,6 +38,7 @@ class User extends EventEmitter2 {
 		return _.find(this.occupied_workstations, item => item.getId() == id)
 	}
 	login(login, password, params) {
+		console.log(connection);
 		let login_sequence = connection.request('/login', {
 				user: login,
 				password: password
