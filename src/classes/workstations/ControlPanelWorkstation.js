@@ -21,8 +21,8 @@ let SharedEntities = require('../access-objects/SharedEntities.js');
 let connection = new Connection();
 
 //@NOTE: rework it pls, but now I have no time to decide how it would be better
-let ReportWorkstation = require('./ReportWorkstation');
-let ReceptionWorkstation = require('./ReceptionWorkstation');
+let ReportWorkstation = require('./ReportWorkstation.js');
+let ReceptionWorkstation = require('./ReceptionWorkstation.js');
 
 class ControlPanelWorkstation extends BaseWorkstation {
   constructor(user) {
@@ -205,6 +205,9 @@ class ControlPanelWorkstation extends BaseWorkstation {
   }
   getServiceInfo(params) {
     return this.reception.getServiceInfo(params);
+  }
+  getWorkstationInfo(params) {
+    return this.reception.getWorkstationInfo(params);
   }
   getAvailableSlots(params) {
     let ws_params = {
