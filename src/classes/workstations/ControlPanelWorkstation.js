@@ -66,6 +66,8 @@ class ControlPanelWorkstation extends BaseWorkstation {
   }
   middleware() {
     let ready = () => this.ready();
+    let noop = () => {};
+
     connection.on('connection-restore', ready);
     let id = _.floor(Math.random() * 1000);
     let process_head = (result) => {
@@ -84,17 +86,27 @@ class ControlPanelWorkstation extends BaseWorkstation {
     };
 
     //@NOTE: so hacky, rewrite this after
+    //@NOTE: make unsubAll() or something like this
     this.cleanUp = () => {
       connection.off('connection-restore', ready);
-      return this.unsubscribe('queue.head', process_head);
+      let unsub_queue = this.unsubscribe({
+        name: 'queue.head',
+        owner_id: this.getId()
+      }, process_head);
+
+      let unsub_command = this.unsubscribe({
+        name: 'command.logout',
+        owner_id: this.getId(),
+      }, noop);
+
+      return Promise.map([unsub_queue, unsub_command]);
     };
 
     this.subscribe({
-      name: 'ticket.*',
-      owner_id: 'pc-1'
-    }, (d) => {
-      console.log('TEST:', d);
-    });
+      name: 'command.logout',
+      owner_id: this.getId(),
+      expose_as: 'command-logout'
+    }, noop);
 
     return this.subscribe({
       name: 'queue.head',
