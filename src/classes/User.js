@@ -178,9 +178,6 @@ class User extends EventEmitter2 {
 
 			if (_.isEmpty(init_data)) throw new Error('WS anavailable')
 
-
-
-
 			let Model = discover(init_data.device_type);
 			let WS = new Model(this);
 

@@ -6,12 +6,12 @@ let Connection = require('../access-objects/connection-instance.js');
 let connection = new Connection();
 
 
-class ReportWorkstation {
+class ReportWorkstation extends BaseWorkstation {
 	constructor(user) {
-		// super(user, 'report');
+		super(user, 'reports');
 	}
 	getTable(template) {
-		return connection.request('/reports/get-table', template);
+		return connection.request('/reports/get-table', template, 'http').then(r => r.value);
 	}
 }
 

@@ -53,8 +53,8 @@ class Connection extends EventEmitter2 {
 
 		return Promise.all(connections_notified);
 	}
-	request(uri, data, method) {
-		return this.getMethod(method).request(uri, data);
+	request(uri, data, method, timeout) {
+		return this.getMethod(method).request(uri, data, timeout);
 	}
 	subscribe(uri, callback, method) {
 		return this.getMethod(method).subscribe(uri, callback);
