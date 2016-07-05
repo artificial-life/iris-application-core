@@ -34,6 +34,13 @@ class User extends EventEmitter2 {
 			return ws.type == type
 		});
 	}
+	getAvailableWorkstationTypes() {
+		//@NOTE: this should be reworked!
+		return _.chain(this.fields.workstations.available)
+			.uniqBy('device_type')
+			.map('device_type')
+			.value();
+	}
 	getWorkstationById(id) {
 		return _.find(this.occupied_workstations, item => item.getId() == id)
 	}
@@ -177,6 +184,9 @@ class User extends EventEmitter2 {
 			let init_data = workstations[ws];
 
 			if (_.isEmpty(init_data)) throw new Error('WS anavailable')
+
+
+
 
 			let Model = discover(init_data.device_type);
 			let WS = new Model(this);
