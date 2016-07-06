@@ -21,7 +21,9 @@ function discover(device_type) {
 
 class User extends EventEmitter2 {
 	constructor(allowed_types) {
-		super();
+		super({
+			maxListeners: 100
+		});
 		this.fields = {};
 		this.workstation_types = allowed_types;
 		this.occupied_workstations = [];
@@ -37,6 +39,7 @@ class User extends EventEmitter2 {
 	getAvailableWorkstationTypes() {
 		//@NOTE: this should be reworked!
 		return _.chain(this.fields.workstations.available)
+			.values()
 			.uniqBy('device_type')
 			.map('device_type')
 			.value();
@@ -45,7 +48,6 @@ class User extends EventEmitter2 {
 		return _.find(this.occupied_workstations, item => item.getId() == id)
 	}
 	login(login, password, params) {
-		console.log(connection);
 		let login_sequence = connection.request('/login', {
 				user: login,
 				password: password
@@ -184,9 +186,6 @@ class User extends EventEmitter2 {
 			let init_data = workstations[ws];
 
 			if (_.isEmpty(init_data)) throw new Error('WS anavailable')
-
-
-
 
 			let Model = discover(init_data.device_type);
 			let WS = new Model(this);

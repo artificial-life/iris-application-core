@@ -66,11 +66,31 @@ class ControlPanelWorkstation extends BaseWorkstation {
 	}
 	middleware() {
 		let ready = () => this.ready();
-		let noop = () => {};
-
-		connection.on('connection-restore', ready);
 		let id = _.floor(Math.random() * 1000);
-		let process_head = (result) => {
+		connection.on('connection-restore', ready);
+
+		this.cleanUp = () => {
+			connection.off('connection-restore', ready);
+			return this.unsubscribe();
+		};
+
+		this.subscribe({
+			name: 'command.logout',
+			owner_id: this.getId(),
+			expose_as: 'command-logout'
+		}, () => {});
+
+		this.subscribe({
+			name: 'office.average-waiting-time'
+		}, function (data) {
+			(data || (data = {})).param = "average-waiting-time";
+			this.emit('office-status-change', data);
+		});
+
+		return this.subscribe({
+			name: 'queue.head',
+			owner_id: this.getId()
+		}, (result) => {
 			_.defaultsDeep(result, {
 				data: default_queue_data
 			});
@@ -83,41 +103,13 @@ class ControlPanelWorkstation extends BaseWorkstation {
 			});
 
 			this.emit('queue.update', data);
-		};
-
-		//@NOTE: so hacky, rewrite this after
-		//@NOTE: make unsubAll() or something like this
-		this.cleanUp = () => {
-			connection.off('connection-restore', ready);
-			let unsub_queue = this.unsubscribe({
-				name: 'queue.head',
-				owner_id: this.getId()
-			}, process_head);
-
-			let unsub_command = this.unsubscribe({
-				name: 'command.logout',
-				owner_id: this.getId(),
-			}, noop);
-
-			return Promise.map([unsub_queue, unsub_command]);
-		};
-
-		this.subscribe({
-			name: 'command.logout',
-			owner_id: this.getId(),
-			expose_as: 'command-logout'
-		}, noop);
-
-		return this.subscribe({
-			name: 'queue.head',
-			owner_id: this.getId()
-		}, process_head);
+		});
 	}
 	onUpdate(callback) {
 		return this.on('queue.update', callback);
 	}
 	getNext() {
-		console.log('next ticket');
+
 		if (!this.user.isLogged()) return Promise.reject('not logged');
 
 		return this.wakeUpNeo().then(() => connection.request('/queue/ticket-next', {
