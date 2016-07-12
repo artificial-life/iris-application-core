@@ -67,6 +67,7 @@ class BaseWorkstation extends EventEmitter2 {
 		return true;
 	}
 	cleanUp() {
+		this.removeAllListeners();
 		return true;
 	}
 	bootstrap(data) {

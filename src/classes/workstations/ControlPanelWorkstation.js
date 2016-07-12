@@ -70,6 +70,7 @@ class ControlPanelWorkstation extends BaseWorkstation {
 		connection.on('connection-restore', ready);
 
 		this.cleanUp = () => {
+			super.cleanUp();
 			connection.off('connection-restore', ready);
 			return this.unsubscribe();
 		};
