@@ -15,5 +15,6 @@ module.exports = {
 	"connection": require("./classes/access-objects/connection-instance.js"),
 	"settings": require("./classes/access-objects/Settings.js"),
 	"History": require("./classes/access-objects/History.js"),
-	"User": require("./classes/User.js")
-}
+	"User": require("./classes/User.js"),
+	"Errors": require("./classes/access-objects/Errors.js")
+};

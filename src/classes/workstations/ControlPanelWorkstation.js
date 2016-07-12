@@ -80,11 +80,13 @@ class ControlPanelWorkstation extends BaseWorkstation {
 			expose_as: 'command-logout'
 		}, () => {});
 
+		//@TODO: use asterix route here office.*
 		this.subscribe({
-			name: 'office.average-waiting-time'
-		}, function (data) {
-			(data || (data = {})).param = "average-waiting-time";
-			this.emit('office-status-change', data);
+			name: 'office.max-waiting-time'
+		}, (event) => {
+			_.set(event, ['data', 'param'], "max-waiting-time");
+
+			this.emit('office-status-change', event.data);
 		});
 
 		return this.subscribe({
@@ -209,6 +211,9 @@ class ControlPanelWorkstation extends BaseWorkstation {
 	}
 	getServiceInfo(params) {
 		return this.reception.getServiceInfo(params);
+	}
+	getServiceDetails(params) {
+		return this.reception.getServiceDetails(params);
 	}
 	getWorkstationInfo(params) {
 		return this.reception.getWorkstationInfo(params);

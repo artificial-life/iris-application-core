@@ -9,6 +9,12 @@ let Connection = require('../access-objects/connection-instance.js');
 
 let connection = new Connection();
 
+let event_tempaltes = {
+	"default": "{event_name}.{org_chain}.{owner_id}",
+	"office.average-waiting-time": "{event_name}.{org_chain}",
+	"office.max-waiting-time": "{event_name}.{org_chain}"
+};
+
 class BaseWorkstation extends EventEmitter2 {
 	constructor(user, type) {
 		super({
@@ -64,27 +70,30 @@ class BaseWorkstation extends EventEmitter2 {
 		return true;
 	}
 	bootstrap(data) {
+		if (_.has(data, "workstation")) _.forEach(data.workstation, (field, field_name) => _.set(this, ['fields', field_name], field));
+
 		return true;
 	}
 	subscriptionName(event) {
-		let office = SharedEntities.get('hierarchy');
+		//@TODO: make computed path to current office and department
+		let offices = _.reverse(_.map(SharedEntities.get('hierarchy'), 'id'));
 		//@NOTE: rework this after stable Event API
 		let event_name = _.isString(event) ? event : event.name;
 		let params = _.isString(event) ? {} : event;
-
 		let owner_id = params.owner_id || this.user.id;
-		let full_name = _.reduceRight(office, (r, v) => {
-			r.push(v.id);
-			return r;
-		}, [event_name]);
 
-		full_name.push(owner_id);
+		return this.templatize({
+			event_name: event_name,
+			org_chain: _.join(offices, '.'),
+			owner_id: owner_id
+		});
+	}
+	templatize(params) {
+		let template = event_tempaltes[params.event_name] || event_tempaltes.default;
 
-		return full_name.join('.');
+		return _.reduce(params, (acc, value, key) => acc.replace('{' + key + '}', value), template);
 	}
 	subscribe(event_name, cb) {
-		console.log(event_name);
-
 		let name = this.subscriptionName(event_name);
 
 		let callback = event_name.expose_as ? ((data) => {
@@ -124,11 +133,8 @@ class BaseWorkstation extends EventEmitter2 {
 		return Promise.all(unsubs);
 	}
 	unsubscribeAll() {
-		console.log('unsub all');
-		let unsubs = _.map(this.stored_subscriptions, event_data => {
-			console.log('uns', event_data);
-			return this._unsub(event_data.name, event_data.callback)
-		});
+		console.log('unsubscirbe all');
+		let unsubs = _.map(this.stored_subscriptions, event_data => this._unsub(event_data.name, event_data.callback));
 
 		return Promise.all(unsubs);
 	}

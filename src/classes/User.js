@@ -32,9 +32,7 @@ class User extends EventEmitter2 {
 		return this.fields.id;
 	}
 	getWorkstation(type) {
-		return _.find(this.occupied_workstations, (ws) => {
-			return ws.type == type
-		});
+		return _.find(this.occupied_workstations, (ws) => ws.type == type);
 	}
 	getAvailableWorkstationTypes() {
 		//@NOTE: this should be reworked!
@@ -66,7 +64,6 @@ class User extends EventEmitter2 {
 			});
 
 		login_sequence.catch((e) => {
-			console.log(e);
 			this.clearFields();
 			throw e;
 		});
@@ -80,19 +77,23 @@ class User extends EventEmitter2 {
 		return !!this.fields.paused;
 	}
 	logout() {
-		let ids = _.map(this.occupied_workstations, ws => ws.id);
+		let ids = _.map(this.occupied_workstations, ws => ws.getId());
 
 		return connection.request('/logout', {
 			workstation: ids
 		}).then((result) => {
-			console.log('logout success');
-			if (!result.success) return Promise.reject(result);
-			return this.clearFields();
+			console.log('<User> logout %s', result.success ? 'success' : 'failed');
+			return result.success ? Promise.map(this.occupied_workstations, ws => ws.cleanUp()) : Promise.reject(result);
+		}).then(() => {
+			this.notifyLeave(this.occupied_workstations);
+			this.clearFields();
+			console.log('done');
 		});
 	}
 	clearFields() {
-		this.fields = {};
-		this.fields.logged_in = false;
+		this.fields = {
+			logged_in: false
+		};
 		this.occupied_workstations = [];
 
 		connection.close();
@@ -101,20 +102,22 @@ class User extends EventEmitter2 {
 	}
 	leave(workstation) {
 		let to_leave = workstation ? _.map(_.castArray(workstation), id => this.getWorkstationById(id)) : this.occupied_workstations;
+		let mass_leave = _.map(to_leave, ws => ws.leave());
 
-		return Promise.all(_.map(to_leave, ws => {
-				return ws.leave().then((r) => {
-					this.emit('workstation.leave', {
-						id: ws.id,
-						type: ws.type
-					});
-					return r;
-				});
-			}))
-			.then((result) => {
-				_.remove(this.occupied_workstations, (ws) => ~_.indexOf(result, ws.getId()));
+		return Promise.all(mass_leave)
+			.then((abandoned) => {
+				_.remove(this.occupied_workstations, (ws) => ~_.indexOf(abandoned, ws.getId()));
+				this.notifyLeave(abandoned);
 				return true;
 			})
+	}
+	notifyLeave(workstations) {
+		_.chain(workstations)
+			.map(ws => _.isObject(ws) ? ws.id : ws)
+			.forEach(id => this.emit('workstation.leave', {
+				id: id
+			}))
+			.value();
 	}
 	switchTo(selected_workstation) {
 		return this.leave().then(() => this.initWS(_.castArray(selected_workstation)))
@@ -182,26 +185,23 @@ class User extends EventEmitter2 {
 		let workstations = this.getAvailableWorkstations();
 		let targets = selected_workstation || this.getDefaultWorkstaions();
 
-		let init = _.map(targets, (ws) => {
-			let init_data = workstations[ws];
-
-			if (_.isEmpty(init_data)) throw new Error('WS anavailable')
+		let init = _.map(targets, (ws_id) => {
+			let init_data = workstations[ws_id];
+			if (_.isEmpty(init_data)) throw new Error('WS anavailable');
 
 			let Model = discover(init_data.device_type);
 			let WS = new Model(this);
 
-			this.occupied_workstations.push(WS);
-
-			let boot = WS.init(init_data.id, init_data);
-
-			boot.then(() => {
-				this.emit('workstation.occupy', {
-					id: init_data.id,
-					type: init_data.device_type
+			return WS.init(ws_id, init_data)
+				.then((result) => {
+					console.log('<User> Emit Occupy #%s', ws_id);
+					this.occupied_workstations.push(WS);
+					this.emit('workstation.occupy', {
+						id: ws_id,
+						type: init_data.device_type
+					});
+					return result;
 				});
-			});
-
-			return boot;
 		});
 
 		return Promise.all(init);

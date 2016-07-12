@@ -13,6 +13,9 @@ class ReceptionWorkstation extends BaseWorkstation {
 	getServiceInfo(params) {
 		return connection.request('/reception/service-info', params);
 	}
+	getServiceDetails(params) {
+		return connection.request('/reception/service-details', params);
+	}
 	getWorkstationInfo(params) {
 		return connection.request('/reception/workstation-info', params);
 	}

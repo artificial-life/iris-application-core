@@ -15,10 +15,6 @@ class RoomdisplayWorkstation extends BaseWorkstation {
 		this.queue_to_play = [];
 		this.queue_length = 40;
 	}
-	bootstrap(data) {
-		console.log('Roomdisplay BOOT:', data);
-		return true;
-	}
 	middleware() {
 		this.default_voice_duration = this.fields.default_voice_duration || 40000;
 

@@ -5,18 +5,24 @@ let Promise = require('bluebird');
 let io = require('socket.io-client');
 
 let request_timeout = 15000;
+let statGrabber = false;
 
-function request() {
+function request(uri, id, timeout) {
 	let resolve;
 	let reject;
+	let start = Date.now();
+
 	let promise = (new Promise((res, rej) => {
 		resolve = res;
 		reject = rej;
-	})).timeout(request_timeout);
+	})).timeout(timeout || request_timeout, 'operation timeout')
 
 	return {
 		promise: promise,
-		resolve: resolve,
+		resolve: function (d) {
+			if (statGrabber) statGrabber.storeNetworkStat(uri, start);
+			resolve(d);
+		},
 		reject: reject
 	}
 }
@@ -86,8 +92,10 @@ function SocketConnectionMethod(server, port) {
 				let rid = data.request_id;
 				let request = awaits[rid];
 
+				if (!data.state) console.log('error %s# reason %s', data.code, data.reason);
+
 				if (request.promise.isPending())
-					return data.state ? request.resolve(data.value) : request.reject(data.reason);
+					return data.state ? request.resolve(data.value) : request.reject(_.pick(data, ['reason', 'code']));
 			});
 		},
 		resubscribe() {
@@ -108,6 +116,7 @@ function SocketConnectionMethod(server, port) {
 			console.log('subscription removed:', this.subscriptions);
 		},
 		close: function () {
+			interval_id && clearInterval(interval_id);
 			socket.disconnect();
 		},
 		onDisconnect(cb) {
