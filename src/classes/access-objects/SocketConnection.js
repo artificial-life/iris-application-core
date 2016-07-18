@@ -4,7 +4,7 @@ let _ = require('lodash');
 let Promise = require('bluebird');
 let io = require('socket.io-client');
 
-let request_timeout = 15000;
+let request_timeout = localStorage.getItem('debug_timeout') || 15000;
 let statGrabber = false;
 
 function request(uri, id, timeout) {

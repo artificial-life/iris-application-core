@@ -3,6 +3,7 @@
 let BaseWorkstation = require('./BaseWorkstation.js');
 let SharedEntities = require('../access-objects/SharedEntities.js');
 let Connection = require('../access-objects/connection-instance.js');
+let Ticket = require('../ticket.js');
 
 let connection = new Connection();
 
