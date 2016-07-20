@@ -155,7 +155,7 @@ function SocketConnectionMethod(server, port) {
 					request_id: rid
 				});
 
-				awaits[rid] = new request();
+				awaits[rid] = new request(uri, rid);
 
 				return awaits[rid].promise;
 			});
@@ -180,6 +180,12 @@ function SocketConnectionMethod(server, port) {
 			});
 		}
 	};
+};
+
+
+//@NOTE: dirty hack
+SocketConnectionMethod.setStatGrabber = function (SG) {
+	statGrabber = SG;
 }
 
 module.exports = SocketConnectionMethod;
