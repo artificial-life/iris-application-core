@@ -18,6 +18,26 @@ class RoomdisplayWorkstation extends BaseWorkstation {
 	}
 	middleware() {
 		this.default_voice_duration = this.fields.default_voice_duration || 40000;
+		//@NOTE: hacky way to emebed external design, pls rework whole concept
+		if (!this.fields.display_design) this.fields.display_design = window.location.pathname + "/design/default.html";
+
+		if (!this.fields.history_enabled) {
+			let remove_from_queue = (event) => {
+				let ticket = event.data;
+				_.remove(this.queue, queue_ticket => _.get(queue_ticket, 'id') == _.get(ticket, 'id'));
+				_.remove(this.queue_to_play, queue_ticket => _.get(queue_ticket, 'id') == _.get(ticket, 'id'));
+
+				this.emit('queue.change');
+			};
+
+			let events = ['postpone', 'processing', 'route', 'expire'];
+
+			_.forEach(events, event => this.subscribe({
+				name: 'ticket.' + event,
+				owner_id: '*'
+			}, remove_from_queue));
+		}
+
 
 		return this.subscribe({
 			name: 'roomdisplay.command',

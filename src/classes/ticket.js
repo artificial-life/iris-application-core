@@ -15,11 +15,17 @@ class Ticket {
 	get booking_date() {
 		return moment.utc(this.utc_booking_date).valueOf();
 	}
+	hasEvent(event_name) {
+		return !!_.find(this.history, ["event_name", event_name])
+	}
 	get is_prebook() {
-		return !!_.find(this.history, (record) => record.event_name == 'book')
+		return this.hasEvent("book")
 	}
 	get is_postopned() {
-		return !!_.find(this.history, (record) => record.event_name == 'postpone')
+		return this.hasEvent("postpone")
+	}
+	get is_routed() {
+		return this.hasEvent("route")
 	}
 	get prebook_time() {
 		if (!_.isArray(this.time_description)) return false;

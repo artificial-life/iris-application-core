@@ -20,15 +20,9 @@ let SharedEntities = require('../access-objects/SharedEntities.js');
 
 let connection = new Connection();
 
-//@NOTE: rework it pls, but now I have no time to decide how it would be better
-let ReportWorkstation = require('./ReportsWorkstation.js');
-let ReceptionWorkstation = require('./ReceptionWorkstation.js');
-
 class ControlPanelWorkstation extends BaseWorkstation {
 	constructor(user) {
 		super(user, 'control-panel');
-		this.reports = new ReportWorkstation(user);
-		this.reception = new ReceptionWorkstation(user);
 	}
 	bootstrap(data) {
 		console.log('bootstrap:', data);
@@ -204,26 +198,6 @@ class ControlPanelWorkstation extends BaseWorkstation {
 	}
 	wakeUpNeo() {
 		return this.user.isPaused() ? this.user.resume() : Promise.resolve(true);
-	}
-
-	//@NOTE: this should be moved to mixins or composition
-	getTable(template) {
-		return this.reports.getTable(template);
-	}
-	getServiceInfo(params) {
-		return this.reception.getServiceInfo(params);
-	}
-	getServiceDetails(params) {
-		return this.reception.getServiceDetails(params);
-	}
-	getWorkstationInfo(params) {
-		return this.reception.getWorkstationInfo(params);
-	}
-	getAvailableSlots(params) {
-		let ws_params = {
-			workstation: this.getId()
-		};
-		return this.reception.getAvailableSlots(_.merge(params, ws_params));
 	}
 }
 

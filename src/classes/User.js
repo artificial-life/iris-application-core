@@ -119,8 +119,8 @@ class User extends EventEmitter2 {
 			}))
 			.value();
 	}
-	switchTo(selected_workstation) {
-		return this.leave().then(() => this.initWS(_.castArray(selected_workstation)))
+	switchTo(to_workstation, from_workstation) {
+		return this.leave(from_workstation).then(() => this.initWS(_.castArray(to_workstation)))
 	}
 	takeBreak() {
 		return this.isPaused() ? this.resume() : this.pause()
@@ -161,7 +161,7 @@ class User extends EventEmitter2 {
 		this.fields.name = result.entity.first_name;
 		this.fields.lastname = result.entity.last_name;
 		this.fields.middlename = result.entity.middle_name;
-		this.fields.default_workstation = result.entity.default_workstation;
+		this.fields.default_workstation = result.entity.default_workstation || [];
 		this.fields.permissions = result.entity.permissions;
 
 		this.fields.workstations = Object.create(null);
@@ -169,13 +169,30 @@ class User extends EventEmitter2 {
 		return true;
 	}
 	getDefaultWorkstaions() {
+		//@TODO: work with "workstation_types" like with an array
 		console.log('Allowed types:', this.workstation_types);
-		let arm_id = settings.getItem(this.workstation_types + '_arm_id') || this.fields.default_workstation;
+		let available = this.fields.workstations.available;
 
-		if (arm_id && !_.isEmpty(arm_id)) return _.castArray(arm_id);
+		let selected = _.castArray(this.fields.default_workstation);
+		let arm_id = _.chain(this.workstation_types)
+			.castArray()
+			.map(type => settings.getItem(type + '_arm_id'))
+			.value();
 
-		let workstations = this.fields.workstations.available;
-		arm_id = _.keys(workstations).slice(0, 1);
+		selected = _.concat(arm_id, selected);
+
+		let arms_by_type = _.reduce(selected, (acc, ws) => {
+			if (!available[ws]) return acc;
+			let av = available[ws];
+			acc[av.device_type] = acc[av.device_type] || ws;
+			console.log(ws, acc);
+			return acc;
+		}, {})
+
+		if (!_.isEmpty(arms_by_type)) return _.values(arms_by_type);
+
+
+		arm_id = _.keys(available).slice(0, 1);
 		return arm_id;
 	}
 	getAvailableWorkstations() {
