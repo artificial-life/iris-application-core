@@ -176,8 +176,16 @@ class User extends EventEmitter2 {
 		let selected = _.castArray(this.fields.default_workstation);
 		let arm_id = _.chain(this.workstation_types)
 			.castArray()
-			.map(type => settings.getItem(type + '_arm_id'))
+			.map(type => {
+				let ws = settings.getItem(type + '_arm_id');
+
+				if (!available[ws]) throw new Error('ws anavailable');
+
+				return ws;
+			})
 			.value();
+
+
 
 		selected = _.concat(arm_id, selected);
 
