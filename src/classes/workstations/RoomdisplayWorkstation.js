@@ -19,13 +19,19 @@ class RoomdisplayWorkstation extends BaseWorkstation {
 	middleware() {
 		this.default_voice_duration = this.fields.default_voice_duration || 40000;
 		//@NOTE: hacky way to emebed external design, pls rework whole concept
-		if (!this.fields.display_design) this.fields.display_design = window.location.pathname + "/design/default.html";
+		if (!this.fields.display_design) this.fields.display_design = window.location.pathname + "design/default.html";
 
 		if (!this.fields.history_enabled) {
 			let remove_from_queue = (event) => {
 				let ticket = event.data;
 				_.remove(this.queue, queue_ticket => _.get(queue_ticket, 'id') == _.get(ticket, 'id'));
-				_.remove(this.queue_to_play, queue_ticket => _.get(queue_ticket, 'id') == _.get(ticket, 'id'));
+
+				let first = _.head(this.queue_to_play);
+				first = first ? first.id : false;
+
+				_.remove(this.queue_to_play, (queue_ticket) => {
+					return (_.get(queue_ticket, 'id') != first && _.get(queue_ticket, 'id') == _.get(ticket, 'id'))
+				});
 
 				this.emit('queue.change');
 			};
@@ -103,12 +109,17 @@ class RoomdisplayWorkstation extends BaseWorkstation {
 		return connection.request('/roomdisplay/report-played', {
 			ticket: ticket.getId(),
 			success: true
-		}).then(() => {
-			_.remove(this.queue_to_play, queue_ticket => this.isSameID(queue_ticket, ticket) && this.isSameWorkstation(queue_ticket, ticket));
+		}).then(() => this.clearQueueToPlay(ticket));
+	}
+	clearQueueToPlay(ticket) {
+		console.log('before clear queue', this.queue_to_play);
 
-			this.emit('queue.change');
-			this.autoFlush();
-		});
+		_.remove(this.queue_to_play, queue_ticket => this.isSameID(queue_ticket, ticket) && this.isSameWorkstation(queue_ticket, ticket));
+
+		console.log('clear queue', this.queue_to_play);
+
+		this.emit('queue.change');
+		this.autoFlush();
 	}
 	failed(ticket) {
 		console.log('report failed', ticket.getId());
@@ -116,11 +127,7 @@ class RoomdisplayWorkstation extends BaseWorkstation {
 		return connection.request('/roomdisplay/report-played', {
 			ticket: ticket.getId(),
 			success: false
-		}).then(() => {
-			_.remove(this.queue_to_play, queue_ticket => this.isSameID(queue_ticket, ticket) && this.isSameWorkstation(queue_ticket, ticket));
-			this.emit('queue.change');
-			this.autoFlush();
-		});
+		}).then(() => this.clearQueueToPlay(ticket));
 	}
 	addToQueue(ticket) {
 		if (this.queue_to_play.length == 0) this.autoFlush();
