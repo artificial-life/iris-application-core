@@ -15,12 +15,12 @@ let Promise = require('bluebird');
 
 let Connection = require('../access-objects/connection-instance.js');
 let Ticket = require('../ticket.js');
-let BaseWorkstation = require('./BaseWorkstation.js');
+let TicketManager = require('./TicketManager.js');
 let SharedEntities = require('../access-objects/SharedEntities.js');
 
 let connection = new Connection();
 
-class ControlPanelWorkstation extends BaseWorkstation {
+class ControlPanelWorkstation extends TicketManager {
 	constructor(user) {
 		super(user, 'control-panel');
 	}
@@ -117,40 +117,6 @@ class ControlPanelWorkstation extends BaseWorkstation {
 			return this.makeTicket(data.ticket);
 		});
 	}
-	getTicketById(ticket) {
-		if (!this.user.isLogged()) return Promise.reject('not logged');
-
-		let ticket_id = (ticket instanceof Ticket) ? ticket.getId() : ticket;
-
-		return this.wakeUpNeo().then(() => connection.request('/queue/ticket-by-id', {
-			ticket: ticket_id,
-			workstation: this.getId()
-		})).then((data) => {
-			if (!data.success) throw new Error('can not get ticket');
-
-			return this.makeTicket(data.ticket);
-		});
-	}
-	postponeTicket(ticket) {
-		if (!this.user.isLogged()) return Promise.reject('not logged');
-
-		let ticket_id = (ticket instanceof Ticket) ? ticket.getId() : ticket;
-
-		return this.changeState('postpone', ticket);
-	}
-	makeTicket(data) {
-		let ticket = new Ticket(data, this);
-		return ticket;
-	}
-	routeTicket(route, ticket) {
-		if (!this.user.isLogged()) return Promise.reject('not logged');
-
-		return this.wakeUpNeo().then(() => connection.request('???', {
-			ticket: ticket.getId(),
-			workstation: this.getId(),
-			route
-		}));
-	}
 	getQueuePage(state, limit, offset) {
 		if (!this.user.isLogged()) return Promise.reject('not logged');
 
@@ -161,40 +127,11 @@ class ControlPanelWorkstation extends BaseWorkstation {
 			offset
 		});
 	}
-	callAgain(ticket) {
-		if (!this.user.isLogged()) return Promise.reject('not logged');
-
-		return this.wakeUpNeo().then(() => connection.request('/queue/call-again', {
-			ticket: ticket.getId(),
-			workstation: this.getId()
-		}));
-	}
 	changeState(state, ticket) {
-		if (!this.user.isLogged()) return Promise.reject('not logged');
-
-		let uri = `/queue/ticket-${state}`;
-
-		return this.wakeUpNeo().then(() => connection.request(uri, {
-			ticket: ticket.getId(),
-			workstation: this.getId()
-		})).then((data) => {
-			if (!data.success) throw new Error('can not change state to', state);
-
-			return this.makeTicket(data.ticket);
-		});
-	}
-	getAvailableRoutes(ticket) {
-		return this.wakeUpNeo().then(() => connection.request('/queue/available-routes', {
-			ticket: ticket.getId()
-		}));
+		return this.wakeUpNeo().then(() => super.changeState(state, ticket));
 	}
 	routeTicket(ticket, route) {
-		return this.wakeUpNeo().then(() => connection.request('/queue/set-route', {
-			ticket: ticket.getId(),
-			workstation: this.getId(),
-			service: route.service,
-			destination: route.workstation
-		}));
+		return this.wakeUpNeo().then(() => super.routeTicket(ticket, route, ));
 	}
 	wakeUpNeo() {
 		return this.user.isPaused() ? this.user.resume() : Promise.resolve(true);

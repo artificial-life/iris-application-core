@@ -18,6 +18,7 @@ function request(uri, id, timeout) {
 	})).timeout(timeout || request_timeout, 'operation timeout')
 
 	return {
+		uri: uri,
 		promise: promise,
 		resolve: function (d) {
 			if (statGrabber) statGrabber.storeNetworkStat(uri, start);
@@ -92,7 +93,10 @@ function SocketConnectionMethod(server, port) {
 				let rid = data.request_id;
 				let request = awaits[rid];
 
-				if (!data.state) console.log('error %s# reason %s', data.code, data.reason);
+				if (!data.state) {
+					console.log(request);
+					console.log('error %s# reason %s', data.code, data.reason);
+				}
 
 				if (request.promise.isPending())
 					return data.state ? request.resolve(data.value) : request.reject(_.pick(data, ['reason', 'code']));

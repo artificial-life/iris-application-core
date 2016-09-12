@@ -42,6 +42,9 @@ class ReceptionWorkstation extends BaseWorkstation {
 	getAvailableSlots(params) {
 		return connection.request('/prebook/service-stats', params);
 	}
+	queryTickes(params) {
+		return connection.request('/reception/query-tickets', params);
+	}
 }
 
 
