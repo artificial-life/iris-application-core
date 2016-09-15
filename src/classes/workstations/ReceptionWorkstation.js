@@ -1,12 +1,12 @@
 'use strict'
 
-let BaseWorkstation = require('./BaseWorkstation.js');
+let TicketManager = require('./TicketManager.js');
 let Connection = require('../access-objects/connection-instance.js');
 
 let connection = new Connection();
 let SharedEntities = require('../access-objects/SharedEntities.js');
 
-class ReceptionWorkstation extends BaseWorkstation {
+class ReceptionWorkstation extends TicketManager {
 	constructor(user) {
 		super(user, 'reception');
 	}
@@ -43,7 +43,9 @@ class ReceptionWorkstation extends BaseWorkstation {
 		return connection.request('/prebook/service-stats', params);
 	}
 	queryTickes(params) {
-		return connection.request('/reception/query-tickets', params);
+		return connection.request('/reception/query-tickets', params).then((data) => {
+			return data.length ? _.map(data, item => this.makeTicket(item)) : [];
+		});
 	}
 }
 

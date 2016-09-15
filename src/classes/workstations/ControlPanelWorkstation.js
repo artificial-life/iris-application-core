@@ -131,7 +131,7 @@ class ControlPanelWorkstation extends TicketManager {
 		return this.wakeUpNeo().then(() => super.changeState(state, ticket));
 	}
 	routeTicket(ticket, route) {
-		return this.wakeUpNeo().then(() => super.routeTicket(ticket, route, ));
+		return this.wakeUpNeo().then(() => super.routeTicket(ticket, route));
 	}
 	wakeUpNeo() {
 		return this.user.isPaused() ? this.user.resume() : Promise.resolve(true);

@@ -23,15 +23,15 @@ class TicketManager extends BaseWorkstation {
 			ticket: ticket.getId(),
 			workstation: this.getId()
 		}).then((data) => {
-			if (!data.success) throw new Error('can not change state to', state);
+			if (!data.success) throw new Error(`can not change state to ${state}`);
 
 			return this.makeTicket(data.ticket);
 		});
 	}
-	routeTicket(ticket, route) {
+	routeTicket(ticket, route, destination) {
 		return connection.request('/queue/set-route', {
 			ticket: ticket.getId(),
-			workstation: this.getId(),
+			workstation: destination || this.getId(),
 			service: route.service,
 			destination: route.workstation
 		});

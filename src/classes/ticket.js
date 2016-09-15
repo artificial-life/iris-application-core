@@ -56,6 +56,10 @@ class Ticket {
 		let action = 'close';
 		return this.queue.changeState(action, this);
 	}
+	restore() {
+		let action = 'restore';
+		return this.queue.changeState(action, this);
+	}
 	postpone() {
 		let action = 'postpone';
 		return this.queue.changeState(action, this).then((r) => {

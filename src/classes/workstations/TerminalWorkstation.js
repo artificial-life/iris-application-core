@@ -85,7 +85,7 @@ class TerminalWorkstation extends BaseWorkstation {
 
 		let priorities = this.current_ticket_data ? _.cloneDeep(this.current_ticket_data.priority) : {};
 		this.current_ticket_data = {
-			service_count: 1,
+			service_count: _.isArray(service_id) ? _.fill(Array(service_id.length), 1) : 1,
 			priority: priorities
 		};
 

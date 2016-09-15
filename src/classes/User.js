@@ -193,7 +193,6 @@ class User extends EventEmitter2 {
 			if (!available[ws]) return acc;
 			let av = available[ws];
 			acc[av.device_type] = acc[av.device_type] || ws;
-			console.log(ws, acc);
 			return acc;
 		}, {})
 
