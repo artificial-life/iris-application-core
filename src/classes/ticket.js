@@ -36,7 +36,7 @@ class Ticket {
 		};
 	}
 	getId() {
-		return this.id;
+		return this.id || this['@id'];
 	}
 	getLabel() {
 		return this.label;
@@ -47,6 +47,12 @@ class Ticket {
 	returnToQueue() {
 		let action = 'open';
 		return this.queue.changeState(action, this);
+	}
+	priorityUp() {
+		return this.queue.changePriority(1, this);
+	}
+	priorityDown() {
+		return this.queue.changePriority(-1, this);
 	}
 	arrived() {
 		let action = 'process';

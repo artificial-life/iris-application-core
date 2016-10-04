@@ -15,6 +15,7 @@ class TicketManager extends BaseWorkstation {
 		return ticket;
 	}
 	changeState(state, ticket) {
+		console.log('<TM> changing state to %s', state);
 		if (!this.user.isLogged()) return Promise.reject('not logged');
 
 		let uri = `/queue/ticket-${state}`;
@@ -23,7 +24,23 @@ class TicketManager extends BaseWorkstation {
 			ticket: ticket.getId(),
 			workstation: this.getId()
 		}).then((data) => {
-			if (!data.success) throw new Error(`can not change state to ${state}`);
+			console.log(data);
+			if (!data.success) throw new Error(`<TM> can not change state to ${state}`);
+
+			return this.makeTicket(data.ticket);
+		});
+	}
+	changePriority(value, ticket) {
+		console.log('<TM> changing priority to %s', value);
+		if (!this.user.isLogged()) return Promise.reject('not logged');
+
+		let uri = `/queue/ticket-change-priority`;
+
+		return connection.request(uri, {
+			ticket: ticket.getId(),
+			diff: value
+		}).then((data) => {
+			if (!data.success) throw new Error(`can not change priority`);
 
 			return this.makeTicket(data.ticket);
 		});
@@ -34,6 +51,10 @@ class TicketManager extends BaseWorkstation {
 			workstation: destination || this.getId(),
 			service: route.service,
 			destination: route.workstation
+		}).then((data) => {
+			if (!data.success) throw new Error(`can not change priority`);
+
+			return this.makeTicket(data.ticket);
 		});
 	}
 	postponeTicket(ticket) {
@@ -43,9 +64,10 @@ class TicketManager extends BaseWorkstation {
 
 		return this.changeState('postpone', ticket);
 	}
-	getAvailableRoutes(ticket) {
+	getAvailableRoutes(ticket, ignore_routs) {
 		return connection.request('/queue/available-routes', {
-			ticket: ticket.getId()
+			ticket: ticket.getId(),
+			ignore_routs: !!ignore_routs
 		});
 	}
 	getTicketById(ticket) {

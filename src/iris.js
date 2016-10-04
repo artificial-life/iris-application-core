@@ -7,6 +7,7 @@ module.exports = {
 	'ReceptionWorkstation': require('./classes/workstations/ReceptionWorkstation.js'),
 	'ReportsWorkstation': require('./classes/workstations/ReportsWorkstation.js'),
 	'RoomdisplayWorkstation': require('./classes/workstations/RoomdisplayWorkstation.js'),
+	'CallCenterWorkstation': require('./classes/workstations/CallCenterWorkstation.js'),
 	'TerminalWorkstation': require('./classes/workstations/TerminalWorkstation.js'),
 	"HttpConnectionMethod": require("./classes/access-objects/HTTPConnection.js"),
 	"SocketConnection": require("./classes/access-objects/SocketConnection.js"),

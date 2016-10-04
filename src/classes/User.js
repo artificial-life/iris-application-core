@@ -168,30 +168,41 @@ class User extends EventEmitter2 {
 		this.fields.workstations.available = result.ws_available;
 		return true;
 	}
+	getSelectedWorkstation() {
+		let selected = _.castArray(this.fields.default_workstation);
+		var available = this.getAvailableWorkstations();
+		let arm_id = _.chain(this.workstation_types)
+			.castArray()
+			.reduce((acc, type) => {
+				let ws = settings.getItem(type + '_arm_id');
+
+				if (ws && !available[ws]) throw new Error('ws anavailable');
+
+				ws && acc.push(ws);
+				return acc;
+			}, [])
+			.value();
+
+		return _.concat(arm_id, selected)
+	}
+	getSelectedWorkstationTypes() {
+		var selected = this.getSelectedWorkstation();
+		var available = this.getAvailableWorkstations();
+		return _.reduce(selected, (acc, ws) => {
+			if (available[ws]) acc.push(available[ws].device_type);
+			return acc;
+		}, [])
+	}
 	getDefaultWorkstaions() {
 		//@TODO: work with "workstation_types" like with an array
 		console.log('Allowed types:', this.workstation_types);
 		let available = this.fields.workstations.available;
 
-		let selected = _.castArray(this.fields.default_workstation);
-		let arm_id = _.chain(this.workstation_types)
-			.castArray()
-			.map(type => {
-				let ws = settings.getItem(type + '_arm_id');
-
-				if (!available[ws]) throw new Error('ws anavailable');
-
-				return ws;
-			})
-			.value();
-
-
-
-		selected = _.concat(arm_id, selected);
+		let selected = this.getSelectedWorkstation();
 
 		let arms_by_type = _.reduce(selected, (acc, ws) => {
-			if (!available[ws]) return acc;
 			let av = available[ws];
+			if (!av) return acc;
 			acc[av.device_type] = acc[av.device_type] || ws;
 			return acc;
 		}, {})
@@ -206,7 +217,7 @@ class User extends EventEmitter2 {
 		return this.fields.workstations.available;
 	}
 	initWS(selected_workstation) {
-		let workstations = this.getAvailableWorkstations();
+		let workstations = this.fields.workstations.available;
 		let targets = selected_workstation || this.getDefaultWorkstaions();
 
 		let init = _.map(targets, (ws_id) => {

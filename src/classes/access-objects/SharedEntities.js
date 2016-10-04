@@ -12,7 +12,6 @@ let makeUri = function (entity_name) {
 let models = {
 	'timezone': {
 		store: function (data) {
-			console.log('timezone transform', data);
 			let server_time = data.current_time;
 			let timezone = data.timezone;
 			let current_time = Date.now();
@@ -32,8 +31,15 @@ class SharedEntities {
 	constructor() {
 		throw new Error('singletone');
 	}
-	static store(namespace, data) {
-		storage[namespace] = models.hasOwnProperty(namespace) ? models[namespace].store(data) : data;
+	static store(namespace, data, method) {
+		let value = models.hasOwnProperty(namespace) ? models[namespace].store(data) : data;
+
+		if (method == "merge") {
+			storage[namespace] = _.defaults(storage[namespace], value);
+		} else {
+			storage[namespace] = value;
+		}
+
 		this.emit('update.' + namespace, storage[namespace]);
 	}
 	static get(namespace, key) {
@@ -41,17 +47,17 @@ class SharedEntities {
 
 		return storage.hasOwnProperty(namespace) ? storage[namespace][key] : undefined;
 	}
-	static request(entity_name, params) {
+	static request(entity_name, params, method) {
 		if (_.isArray(entity_name)) {
 			return Promise.all(_.map(entity_name, (single) => connection.request(makeUri(single.name), single.params).then((data) => {
-				this.store(data.namespace, data.entities);
+				this.store(data.namespace, data.entities, single.method);
 				return true;
 			})));
 		}
 		let uri = makeUri(entity_name);
 
 		return connection.request(uri, params).then((data) => {
-			this.store(data.namespace, data.entities);
+			this.store(data.namespace, data.entities, method);
 			return true;
 		});
 	}
