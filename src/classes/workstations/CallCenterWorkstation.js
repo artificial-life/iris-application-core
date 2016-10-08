@@ -71,4 +71,4 @@ class CallCenterWorkstation extends TicketRegister {
 	}
 }
 
-module.exports = CallCenterWorkstation;;
+module.exports = CallCenterWorkstation;

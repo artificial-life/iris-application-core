@@ -11,6 +11,8 @@ class Ticket {
 		this.queue = queue;
 		_.defaults(this, data);
 		this.utc_booking_date = data.booking_date;
+
+		if (!!this.inheritance_level) this.label = this.label + ' / ' + this.inheritance_level;
 	}
 	get booking_date() {
 		return moment.utc(this.utc_booking_date).valueOf();

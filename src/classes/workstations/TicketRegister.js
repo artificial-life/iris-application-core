@@ -64,12 +64,33 @@ class TicketRegister extends BaseWorkstation {
 	confirmPrebook(fields) {
 		return this.confirm(fields, false);
 	}
-	confirm(fields, is_live) {
-		let copy = _.cloneDeep(fields);
-		copy.workstation = copy.workstation || this.getId();
+	confirm(fields, is_live, fields_model) {
+		let copy = this.postprocessFields(fields, fields_model);
 		let module = is_live ? 'queue' : 'prebook';
 
 		return connection.request('/' + module + '/ticket-confirm', copy).then((response) => this.transformPrintData(response));
+	}
+	postprocessFields(fields, fields_model) {
+		let copy = _.cloneDeep(fields);
+		copy.workstation = copy.workstation || this.getId();
+
+		if (_.isEmpty(fields_model)) return copy;
+
+		_.forEach(fields_model, (model, name) => {
+			if (!model.hasOwnProperty('label')) return true;
+
+			let prop_name = model.key || name;
+
+			if (!copy.hasOwnProperty(prop_name)) return true;
+
+			let value = copy[prop_name];
+			copy[prop_name] = {
+				value: value,
+				label: model.label
+			};
+		});
+
+		return copy;
 	}
 	prebookObserve(data) {
 		data.workstation = this.getId();

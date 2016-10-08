@@ -210,7 +210,7 @@ class User extends EventEmitter2 {
 		if (!_.isEmpty(arms_by_type)) return _.values(arms_by_type);
 
 
-		arm_id = _.keys(available).slice(0, 1);
+		let arm_id = _.keys(available).slice(0, 1);
 		return arm_id;
 	}
 	getAvailableWorkstations() {
