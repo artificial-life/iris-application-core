@@ -17,10 +17,23 @@ class ReceptionWorkstation extends TicketManager {
 			this.emit('ticket-changed', this.makeTicket(response.data));
 		};
 
-		this.subscribe({
-			name: 'ticket.*',
-			owner_id: '*'
-		}, remove_from_queue);
+		let permission = _.get(this.user, ["fields", "permissions", "can-manage"]);
+		let departments = _.reduce(permission, (accum, item, key) => {
+			if (item)
+				accum.push(key);
+			return accum;
+		}, []);
+
+		_.forEach(departments, department => {
+			let office = _.get(SharedEntities.get('departments', department), 'unit_of');
+
+			this.subscribe({
+				name: 'ticket.*',
+				owner_id: '*',
+				department: department,
+				office: office
+			}, remove_from_queue);
+		});
 	}
 	getShared() {
 		let ws_params = {
@@ -42,28 +55,29 @@ class ReceptionWorkstation extends TicketManager {
 			params: ws_params
 		}, {
 			name: 'services',
-			params: ws_params
+			params: {
+				department: departments
+			}
 		}, {
 			name: 'organization-chain',
 			params: ws_params
+		}, {
+			name: 'workstations',
+			params: {
+				department: departments
+			}
+		}, {
+			name: 'operators',
+			params: {
+				department: departments
+			}
+		}, {
+			name: 'departments',
+			params: {
+				department: departments
+			}
 		}];
-		//@TODO: rework it after patchwerk rework
-		_.forEach(departments, (department) => {
-			let params = {
-				department: department
-			};
 
-			request_shared.push({
-				name: 'workstations',
-				params: params,
-				method: 'merge'
-			})
-			request_shared.push({
-				name: 'operators',
-				params: params,
-				method: 'merge'
-			});
-		});
 		return SharedEntities.request(request_shared);
 	}
 	getServiceInfo(params) {
@@ -79,6 +93,10 @@ class ReceptionWorkstation extends TicketManager {
 	getAvailableSlots(params) {
 		return connection.request('/prebook/service-stats', params);
 	}
+	turnoffWorkstation(params) {
+		params.workstation = this.getId();
+		return connection.request('/workstation/user-logout', params);
+	}
 	queryTickes(params) {
 		return connection.request('/reception/query-tickets', params)
 			.then(data => _.isEmpty(data) ? [] : _.map(data, item => this.makeTicket(item)));
@@ -86,4 +104,4 @@ class ReceptionWorkstation extends TicketManager {
 }
 
 
-module.exports = ReceptionWorkstation;;
+module.exports = ReceptionWorkstation;

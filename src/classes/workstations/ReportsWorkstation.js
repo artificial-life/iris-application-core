@@ -30,26 +30,22 @@ class ReportsWorkstation extends BaseWorkstation {
 			params: ws_params
 		}, {
 			name: 'services',
-			params: ws_params
+			params: {
+				department: departments
+			}
 		}, {
 			name: 'organization-chain',
 			params: ws_params
 		}, {
 			name: 'qa-questions',
 			params: ws_params
+		}, {
+			name: 'operators',
+			params: {
+				department: departments
+			}
 		}];
 
-		_.forEach(departments, (department) => {
-			let params = {
-				department: department
-			};
-
-			request_shared.push({
-				name: 'operators',
-				params: params,
-				method: 'merge'
-			});
-		});
 
 		return SharedEntities.request(request_shared);
 	}

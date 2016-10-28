@@ -5,6 +5,7 @@ module.exports = {
 	'PandoraBoxWorkstation': require('./classes/workstations/PandoraBoxWorkstation.js'),
 	'QaWorkstation': require('./classes/workstations/QaWorkstation.js'),
 	'ReceptionWorkstation': require('./classes/workstations/ReceptionWorkstation.js'),
+	'OperatorDisplayWorkstation': require('./classes/workstations/OperatorDisplayWorkstation.js'),
 	'ReportsWorkstation': require('./classes/workstations/ReportsWorkstation.js'),
 	'RoomdisplayWorkstation': require('./classes/workstations/RoomdisplayWorkstation.js'),
 	'CallCenterWorkstation': require('./classes/workstations/CallCenterWorkstation.js'),

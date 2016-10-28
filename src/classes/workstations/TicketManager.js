@@ -38,6 +38,7 @@ class TicketManager extends BaseWorkstation {
 
 		return connection.request(uri, {
 			ticket: ticket.getId(),
+			workstation: this.getId(),
 			diff: value
 		}).then((data) => {
 			if (!data.success) throw new Error(`can not change priority`);

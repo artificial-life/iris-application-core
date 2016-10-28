@@ -11,6 +11,7 @@ class Ticket {
 		this.queue = queue;
 		_.defaults(this, data);
 		this.utc_booking_date = data.booking_date;
+		this.raw_label = this.label;
 
 		if (!!this.inheritance_level) this.label = this.label + ' / ' + this.inheritance_level;
 	}
@@ -27,7 +28,11 @@ class Ticket {
 		return this.hasEvent("postpone")
 	}
 	get is_routed() {
-		return this.hasEvent("route")
+		let route = this.hasEvent("route");
+
+		if (route) return true;
+
+		return !!this.inherits;
 	}
 	get prebook_time() {
 		if (!_.isArray(this.time_description)) return false;

@@ -50,7 +50,9 @@ class CallCenterWorkstation extends TicketRegister {
 			params: ws_params
 		}, {
 			name: 'services',
-			params: ws_params
+			params: {
+				department: departments
+			}
 		}, {
 			name: 'organization-chain',
 			params: ws_params

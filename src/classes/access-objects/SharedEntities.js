@@ -34,10 +34,10 @@ class SharedEntities {
 	static store(namespace, data, method) {
 		let value = models.hasOwnProperty(namespace) ? models[namespace].store(data) : data;
 
-		if (method == "merge") {
-			storage[namespace] = _.defaults(storage[namespace], value);
-		} else {
+		if (method == "replace") {
 			storage[namespace] = value;
+		} else {
+			storage[namespace] = _.defaults(storage[namespace], value);
 		}
 
 		this.emit('update.' + namespace, storage[namespace]);
@@ -48,14 +48,25 @@ class SharedEntities {
 		return storage.hasOwnProperty(namespace) ? storage[namespace][key] : undefined;
 	}
 	static request(entity_name, params, method) {
+		this._prepocessRequest(entity_name);
+		return _.isArray(entity_name) ? Promise.map(entity_name, single => this._request(single.name, single.params, single.method)) : this._request(entity_name, params, method);
+	}
+	static _prepocessRequest(entity_name) {
+		//@NOTE: hack before patchwerk ready; just disable it after
 		if (_.isArray(entity_name)) {
-			return Promise.all(_.map(entity_name, (single) => connection.request(makeUri(single.name), single.params).then((data) => {
-				this.store(data.namespace, data.entities, single.method);
-				return true;
-			})));
-		}
-		let uri = makeUri(entity_name);
 
+			let mult = _.remove(entity_name, single => _.has(single, 'params.department') && _.isArray(single.params.department));
+			_.forEach(mult, single => {
+				_.forEach(single.params.department, dep => {
+					let item = _.cloneDeep(single);
+					item.params.department = dep;
+					entity_name.push(item);
+				});
+			});
+		}
+	}
+	static _request(entity_name, params, method) {
+		let uri = makeUri(entity_name);
 		return connection.request(uri, params).then((data) => {
 			this.store(data.namespace, data.entities, method);
 			return true;
@@ -73,4 +84,4 @@ class SharedEntities {
 }
 
 
-module.exports = SharedEntities;
+module.exports = SharedEntities;;;

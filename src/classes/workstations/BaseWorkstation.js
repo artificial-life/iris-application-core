@@ -77,7 +77,7 @@ class BaseWorkstation extends EventEmitter2 {
 	}
 	subscriptionName(event) {
 		//@TODO: make computed path to current office and department
-		let offices = _.reverse(_.map(SharedEntities.get('hierarchy'), 'id'));
+		let org_chain = this.makeOrgChain(event);
 		//@NOTE: rework this after stable Event API
 		let event_name = _.isString(event) ? event : event.name;
 		let params = _.isString(event) ? {} : event;
@@ -85,9 +85,19 @@ class BaseWorkstation extends EventEmitter2 {
 
 		return this.templatize({
 			event_name: event_name,
-			org_chain: _.join(offices, '.'),
+			org_chain: org_chain,
 			owner_id: owner_id
 		});
+	}
+	makeOrgChain(event) {
+		let offices = _.map(SharedEntities.get('hierarchy'), 'id');
+		if (_.has(event, 'department')) {
+			offices[0] = event.department;
+		}
+		if (_.has(event, 'office')) {
+			offices[1] = event.office || offices[1];
+		}
+		return _.join(_.reverse(offices), '.');
 	}
 	templatize(params) {
 		let template = event_tempaltes[params.event_name] || event_tempaltes.default;

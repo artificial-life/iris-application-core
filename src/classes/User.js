@@ -65,6 +65,7 @@ class User extends EventEmitter2 {
 
 		login_sequence.catch((e) => {
 			this.clearFields();
+			console.log('Login error');
 			throw e;
 		});
 

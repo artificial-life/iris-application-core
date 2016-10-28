@@ -13,8 +13,8 @@ class TicketRegister extends BaseWorkstation {
 	constructor(user, type) {
 		super(user, type);
 	}
-	getTicketByPin(pin) {
-		let request = connection.request('/ticket/by-code', {
+	getTicketByPin(pin, history) {
+		let request = connection.request(history ? '/ticket/history' : '/ticket/by-code', {
 			code: pin
 		})
 
@@ -120,4 +120,4 @@ class TicketRegister extends BaseWorkstation {
 	}
 }
 
-module.exports = TicketRegister;
+module.exports = TicketRegister;;
