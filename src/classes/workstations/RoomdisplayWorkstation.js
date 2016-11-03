@@ -18,11 +18,14 @@ class RoomdisplayWorkstation extends BaseWorkstation {
 	}
 	middleware() {
 		this.default_voice_duration = this.fields.default_voice_duration || 40000;
-		//@NOTE: hacky way to emebed external design, pls rework whole concept
-		// @TODO: do something with doubel slashes on local (check if last symbol is slash)
-		if (!this.fields.display_design) this.fields.display_design = window.location.pathname + "/design/default.html";
 
-		if (!this.fields.history_enabled) {
+		let drop_events = _.isArray(this.fields.history_enabled) ? this.fields.history_enabled : [];
+
+		if (this.fields.history_enabled === false) {
+			drop_events = ['postpone', 'processing', 'route', 'expire', 'close'];
+		}
+
+		if (!_.isEmpty(drop_events)) {
 			let remove_from_queue = (event) => {
 				let ticket = event.data;
 
@@ -36,9 +39,8 @@ class RoomdisplayWorkstation extends BaseWorkstation {
 				this.emit('queue.change');
 			};
 
-			let events = ['postpone', 'processing', 'route', 'expire'];
 
-			_.forEach(events, event => this.subscribe({
+			_.forEach(drop_events, event => this.subscribe({
 				name: 'ticket.' + event,
 				owner_id: '*'
 			}, remove_from_queue));

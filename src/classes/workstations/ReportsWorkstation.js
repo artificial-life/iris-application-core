@@ -26,16 +26,10 @@ class ReportsWorkstation extends BaseWorkstation {
 			name: 'timezone',
 			params: ws_params
 		}, {
-			name: 'office',
-			params: ws_params
-		}, {
 			name: 'services',
 			params: {
 				department: departments
 			}
-		}, {
-			name: 'organization-chain',
-			params: ws_params
 		}, {
 			name: 'qa-questions',
 			params: ws_params

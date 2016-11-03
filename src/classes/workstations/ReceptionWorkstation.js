@@ -51,16 +51,10 @@ class ReceptionWorkstation extends TicketManager {
 			name: 'timezone',
 			params: ws_params
 		}, {
-			name: 'office',
-			params: ws_params
-		}, {
 			name: 'services',
 			params: {
 				department: departments
 			}
-		}, {
-			name: 'organization-chain',
-			params: ws_params
 		}, {
 			name: 'workstations',
 			params: {
