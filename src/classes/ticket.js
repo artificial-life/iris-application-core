@@ -69,6 +69,10 @@ class Ticket {
 		let action = 'close';
 		return this.queue.changeState(action, this);
 	}
+	remove() {
+		let action = 'remove';
+		return this.queue.changeState(action, this);
+	}
 	restore() {
 		let action = 'restore';
 		return this.queue.changeState(action, this);
