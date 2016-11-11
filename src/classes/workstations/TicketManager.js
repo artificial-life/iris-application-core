@@ -14,6 +14,13 @@ class TicketManager extends BaseWorkstation {
 		let ticket = new Ticket(data, this);
 		return ticket;
 	}
+	getSessionTickets(params) {
+		return connection.request(ticket / session - tickets, params).then(data => {
+			if (!data.success) throw new Error(`can not get tickets`);
+
+			return _.map(data.tickets, ticket => this.makeTicket(ticket))
+		});
+	}
 	changeState(state, ticket) {
 		console.log('<TM> changing state to %s', state);
 		if (!this.user.isLogged()) return Promise.reject('not logged');
