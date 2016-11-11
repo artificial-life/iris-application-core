@@ -91,7 +91,7 @@ class ReceptionWorkstation extends TicketManager {
 		params.workstation = this.getId();
 		return connection.request('/workstation/user-logout', params);
 	}
-	queryTickes(params) {
+	queryTickets(params) {
 		return connection.request('/reception/query-tickets', params)
 			.then(data => _.isEmpty(data) ? [] : _.map(data, item => this.makeTicket(item)));
 	}
