@@ -34,6 +34,12 @@ class Ticket {
 
 		return !!this.inherits;
 	}
+	get just_routed() {
+		let last = _.last(this.history);
+		let event_name = _.get(last, event_name);
+
+		return event_name == "route";
+	}
 	get prebook_time() {
 		if (!_.isArray(this.time_description)) return false;
 
