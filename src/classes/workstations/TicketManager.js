@@ -15,7 +15,7 @@ class TicketManager extends BaseWorkstation {
 		return ticket;
 	}
 	getSessionTickets(params) {
-		return connection.request(ticket / session - tickets, params).then(data => {
+		return connection.request("ticket/session-tickets", params).then(data => {
 			if (!data.success) throw new Error(`can not get tickets`);
 
 			return _.map(data.tickets, ticket => this.makeTicket(ticket))
