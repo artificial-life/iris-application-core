@@ -19,14 +19,15 @@ class CallCenterWorkstation extends TicketRegister {
 	}
 	bootstrap(data) {
 		let attached_terminal = _.castArray(this.fields.attached_terminal);
+		let departments = this.getAllowedDepartments("can-book");
+
 		let bootstrap_uri = '/terminal/bootstrap';
 		let boot = _.map(attached_terminal, id => connection.request(bootstrap_uri, {
 			workstation: id
 		}));
 
 		return Promise.all(boot).then(result => {
-			this.terminals = result;
-
+			this.terminals = _.filter(result, term => ~departments.indexOf(term.workstation.attached_to));
 			return true;
 		});
 	}
@@ -35,12 +36,7 @@ class CallCenterWorkstation extends TicketRegister {
 			workstation: this.getId()
 		};
 
-		let permission = _.get(this.user, ["fields", "permissions", "can-book"]);
-		let departments = _.reduce(permission, (accum, item, key) => {
-			if (item)
-				accum.push(key);
-			return accum;
-		}, []);
+		let departments = this.getAllowedDepartments("can-book");
 
 		let request_shared = [{
 			name: 'timezone',

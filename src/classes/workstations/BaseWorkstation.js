@@ -42,6 +42,16 @@ class BaseWorkstation extends EventEmitter2 {
 			})
 			.then(() => this.ready());
 	}
+	getAllowedDepartments(permission_name) {
+		let permission = _.get(this.user, ["fields", "permissions", permission_name]);
+		let departments = _.reduce(permission, (accum, item, key) => {
+			if (item)
+				accum.push(key);
+			return accum;
+		}, []);
+
+		return departments;
+	}
 	leave() {
 		return connection.request('/workstation/leave', {
 				workstation: this.id

@@ -92,8 +92,15 @@ class ReceptionWorkstation extends TicketManager {
 		return connection.request('/workstation/user-logout', params);
 	}
 	queryTickets(params) {
-		return connection.request('/reception/query-tickets', params)
-			.then(data => _.isEmpty(data) ? [] : _.map(data, item => this.makeTicket(item)));
+		let request = params.field == "@id" ? this.queryOne(params.text) : connection.request('/reception/query-tickets', params);
+		params.department = params.department || _.castArray(this.fields.attached_to);
+
+		return request.then(data => _.isEmpty(data) ? [] : _.map(data, item => this.makeTicket(item)));
+	}
+	queryOne(ticket) {
+		return connection.request('/ticket/by-id', {
+			ticket
+		});
 	}
 }
 

@@ -28,15 +28,11 @@ class Ticket {
 		return this.hasEvent("postpone")
 	}
 	get is_routed() {
-		let route = this.hasEvent("route");
-
-		if (route) return true;
-
-		return !!this.inherits;
+		return this.hasEvent("route") || !!this.inherits;
 	}
 	get just_routed() {
 		let last = _.last(this.history);
-		let event_name = _.get(last, event_name);
+		let event_name = _.get(last, "event_name");
 
 		return event_name == "route";
 	}
