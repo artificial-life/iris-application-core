@@ -5,6 +5,8 @@ let Promise = require('bluebird');
 let moment = require('moment');
 
 let secondsToTime = require('../utils/seconds-to-time.js');
+let secondsToFullTime = require('../utils/seconds-to-full-time.js');
+let SharedEntities = require('./access-objects/SharedEntities.js');
 
 class Ticket {
 	constructor(data, queue) {
@@ -15,6 +17,24 @@ class Ticket {
 
 		if (!!this.inheritance_level) this.label = this.label + ' / ' + this.inheritance_level;
 	}
+	processFieldList() {
+		let base = this.user_info_description || {};
+		let description = _.defaults(base, SharedEntities.get('user-info-fields'));
+
+		return _.reduce(this.user_info, (acc, item, name) => {
+			if (description.hasOwnProperty(name)) {
+				acc.push({
+					label: _.get(description, [name, 'label']),
+					value: item
+				});
+			}
+
+			return acc;
+		}, []);
+	}
+	get field_list() {
+		return this.processFieldList();
+	}
 	get booking_date() {
 		return moment.utc(this.utc_booking_date).valueOf();
 	}
@@ -22,10 +42,13 @@ class Ticket {
 		return !!_.find(this.history, ["event_name", event_name])
 	}
 	get is_prebook() {
-		return this.hasEvent("book")
+		return this.hasEvent("book");
+	}
+	get is_activated() {
+		return this.hasEvent("activate");
 	}
 	get is_postopned() {
-		return this.hasEvent("postpone")
+		return this.hasEvent("postpone");
 	}
 	get is_routed() {
 		return this.hasEvent("route") || !!this.inherits;
@@ -43,6 +66,26 @@ class Ticket {
 			start: secondsToTime(this.time_description[0]),
 			end: secondsToTime(this.time_description[1])
 		};
+	}
+	getWaitingTime() {
+		if (this.state != "registered" || this.hasEvent("restore")) {
+			return "";
+		}
+
+		let now = this.secondsFromDayStart();
+		let start_time = this.is_prebook ? _.head(this.time_description) : this.secondsFromDayStart(this.booking_date);
+
+		if (start_time > now) return "";
+
+		return secondsToFullTime(now - start_time);
+	}
+	secondsFromDayStart(time) {
+		let tz = SharedEntities.get('timezone');
+		time = time || (Date.now() - tz.offset);
+
+		return moment(time).tz(tz.name)
+			.diff(moment.tz(tz.name)
+				.startOf('day'), 'seconds');
 	}
 	getId() {
 		return this.id || this['@id'];
@@ -75,6 +118,9 @@ class Ticket {
 		let action = 'remove';
 		return this.queue.changeState(action, this);
 	}
+	register() {
+		return this.queue.registerTicket(this);
+	}
 	restore() {
 		let action = 'restore';
 		return this.queue.changeState(action, this);
@@ -101,4 +147,4 @@ class Ticket {
 
 
 
-module.exports = Ticket;
+module.exports = Ticket;;

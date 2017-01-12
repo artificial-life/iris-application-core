@@ -11,8 +11,15 @@ class TicketManager extends BaseWorkstation {
 		super(user, type);
 	}
 	makeTicket(data) {
-		let ticket = new Ticket(data, this);
+		let ticket = new Ticket(this.detachPrivateFields(data), this);
 		return ticket;
+	}
+	detachPrivateFields(data) {
+		_.forEach(data.user_info_description, (value, name) => {
+			(!!value.private) && _.unset(data.user_info, name);
+		})
+
+		return data;
 	}
 	getSessionTickets(params) {
 		return connection.request("ticket/session-tickets", params).then(data => {
@@ -64,6 +71,23 @@ class TicketManager extends BaseWorkstation {
 
 			return this.makeTicket(data.ticket);
 		});
+	}
+	registerTicket(ticket) {
+		if (!this.user.isLogged()) return Promise.reject('not logged');
+
+		let ticket_id = ticket.getId();
+
+		return connection.request('/queue/ticket-print', {
+			ticket: ticket_id,
+			workstation: this.getId(),
+			reason: 'reception registration'
+		}).then((response) => this.transformPrintData(response));
+	}
+	transformPrintData(response) {
+		if (!_.isEmpty(response.ticket)) {
+			response.ticket = _.isArray(response.ticket) ? _.map(response.ticket, ticket => this.makeTicket(ticket)) : this.makeTicket(response.ticket);
+		}
+		return response;
 	}
 	postponeTicket(ticket) {
 		if (!this.user.isLogged()) return Promise.reject('not logged');

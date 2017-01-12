@@ -28,7 +28,7 @@ class BaseWorkstation extends EventEmitter2 {
 		this.label = data.label;
 		this.id = id;
 		this.fields = data;
-		console.log('init', id, this);
+		console.log('init', id);
 		let bootstrap_uri = '/' + this.type + '/bootstrap';
 
 		return connection.request(bootstrap_uri, {

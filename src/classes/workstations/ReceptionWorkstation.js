@@ -70,6 +70,9 @@ class ReceptionWorkstation extends TicketManager {
 			params: {
 				department: departments
 			}
+		}, {
+			name: 'user-info-fields',
+			params: ws_params
 		}];
 
 		return SharedEntities.request(request_shared);

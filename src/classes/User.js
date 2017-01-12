@@ -84,6 +84,17 @@ class User extends EventEmitter2 {
 			workstation: ids
 		}).then((result) => {
 			console.log('<User> logout %s', result.success ? 'success' : 'failed');
+			//@WARN: ITS TEMPORARY
+			if (result.success) {
+				try {
+					window.location.reload();
+				} catch (e) {
+					console.log('Yeap, we are not in browser');
+				} finally {
+					return Promise.resolve(true).delay(1000);
+				}
+			}
+			//@WARN: ITS TEMPORARY
 			return result.success ? Promise.map(this.occupied_workstations, ws => ws.cleanUp()) : Promise.reject(result);
 		}).then(() => {
 			this.notifyLeave(this.occupied_workstations);
@@ -108,6 +119,7 @@ class User extends EventEmitter2 {
 		return Promise.all(mass_leave)
 			.then((abandoned) => {
 				_.remove(this.occupied_workstations, (ws) => ~_.indexOf(abandoned, ws.getId()));
+
 				this.notifyLeave(abandoned);
 				return true;
 			})
@@ -121,7 +133,9 @@ class User extends EventEmitter2 {
 			.value();
 	}
 	switchTo(to_workstation, from_workstation) {
-		return this.leave(from_workstation).then(() => this.initWS(_.castArray(to_workstation)))
+		return this.leave(from_workstation)
+			.then(() => this.initWS(_.castArray(to_workstation)));
+
 	}
 	takeBreak() {
 		return this.isPaused() ? this.resume() : this.pause()
@@ -189,6 +203,9 @@ class User extends EventEmitter2 {
 	getSelectedWorkstationTypes() {
 		var selected = this.getSelectedWorkstation();
 		var available = this.getAvailableWorkstations();
+
+		selected = _.isEmpty(selected) ? this.getDefaultWorkstaions() : selected;
+
 		return _.reduce(selected, (acc, ws) => {
 			if (available[ws]) acc.push(available[ws].device_type);
 			return acc;
@@ -218,9 +235,11 @@ class User extends EventEmitter2 {
 		return this.fields.workstations.available;
 	}
 	initWS(selected_workstation) {
+		//@NOTE: User should be active after login or ws switch
+		this.fields.paused = false;
+
 		let workstations = this.fields.workstations.available;
 		let targets = selected_workstation || this.getDefaultWorkstaions();
-
 		let init = _.map(targets, (ws_id) => {
 			let init_data = workstations[ws_id];
 			if (_.isEmpty(init_data)) throw new Error('WS anavailable');
@@ -232,6 +251,7 @@ class User extends EventEmitter2 {
 				.then((result) => {
 					console.log('<User> Emit Occupy #%s', ws_id);
 					this.occupied_workstations.push(WS);
+
 					this.emit('workstation.occupy', {
 						id: ws_id,
 						type: init_data.device_type
@@ -244,4 +264,4 @@ class User extends EventEmitter2 {
 	}
 }
 
-module.exports = User;
+module.exports = User;;;;;

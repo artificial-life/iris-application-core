@@ -17,8 +17,10 @@ class TerminalWorkstation extends TicketRegister {
 	}
 	bootstrap(data) {
 		console.log('TERMINAL BOOT:', data);
+		this._applyCustomFieldsTransform(data);
 		this.service_views = data.views;
 		this.fields_model = data.fields_model;
+
 		//@NOTE: interval in minutes
 		this.reload_interval = data.workstation.reload_interval * 60 * 1000;
 
@@ -40,6 +42,9 @@ class TerminalWorkstation extends TicketRegister {
 			params: ws_params
 		}, {
 			name: 'organization-chain',
+			params: ws_params
+		}, {
+			name: 'user-info-fields',
 			params: ws_params
 		}];
 
@@ -74,8 +79,7 @@ class TerminalWorkstation extends TicketRegister {
 		return this.service_views;
 	}
 	getFieldsModel() {
-		return this.fields_model
-
+		return this.fields_model;
 	}
 }
 

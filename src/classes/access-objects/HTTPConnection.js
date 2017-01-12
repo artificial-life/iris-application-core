@@ -11,13 +11,15 @@ function HttpConnectionMethod(server, port) {
 
 	return {
 		name: "http",
-		auth: function () {
+		auth: function (token) {
+			this.token = token;
 			return Promise.resolve(true)
 		},
 		close: function () {
 			return Promise.resolve(true)
 		},
 		request: function (uri, data) {
+			data.token = this.token;
 			console.log(uri, data);
 			let options = {
 				method: 'POST',
@@ -27,8 +29,10 @@ function HttpConnectionMethod(server, port) {
 				}
 			};
 			let url = (server ? server : '') + (port ? ':' + port : '') + uri;
+
 			return fetch(url, options)
-				.then((d) => d.json()).catch((r) => {
+				.then((d) => d.json())
+				.catch((r) => {
 					throw new Error('failed to fetch')
 				})
 		},
@@ -41,4 +45,4 @@ function HttpConnectionMethod(server, port) {
 	}
 };
 
-module.exports = HttpConnectionMethod;
+module.exports = HttpConnectionMethod;;

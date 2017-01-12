@@ -27,7 +27,14 @@ class CallCenterWorkstation extends TicketRegister {
 		}));
 
 		return Promise.all(boot).then(result => {
-			this.terminals = _.filter(result, term => ~departments.indexOf(term.workstation.attached_to));
+			this.terminals = _.reduce(result, (acc, term) => {
+				if (!~departments.indexOf(term.workstation.attached_to)) return acc;
+				this._applyCustomFieldsTransform(term);
+
+				acc.push(term);
+				return acc;
+			}, []);
+
 			return true;
 		});
 	}
@@ -69,4 +76,4 @@ class CallCenterWorkstation extends TicketRegister {
 	}
 }
 
-module.exports = CallCenterWorkstation;
+module.exports = CallCenterWorkstation;;

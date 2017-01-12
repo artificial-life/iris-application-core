@@ -15,6 +15,7 @@ class RoomdisplayWorkstation extends BaseWorkstation {
 		this.queue = [];
 		this.queue_to_play = [];
 		this.queue_length = 40;
+
 	}
 	middleware() {
 		this.default_voice_duration = this.fields.default_voice_duration || 40000;
@@ -25,16 +26,20 @@ class RoomdisplayWorkstation extends BaseWorkstation {
 			drop_events = ['postpone', 'processing', 'route', 'expire', 'close'];
 		}
 
+		console.log('<RD> Drop events list:', drop_events);
+
 		if (!_.isEmpty(drop_events)) {
 			let remove_from_queue = (event) => {
+				console.log('<RD> Ticket event', event);
 				let ticket = event.data;
+				let id = _.get(ticket, 'id');
 
-				this.queue = _.filter(this.queue, queue_ticket => _.get(queue_ticket, 'id') != _.get(ticket, 'id'));
+				this.queue = _.filter(this.queue, queue_ticket => _.get(queue_ticket, 'id') != id);
 
 				let first = _.head(this.queue_to_play);
 				let first_id = first ? first.id : false;
 
-				_.remove(this.queue_to_play, (queue_ticket) => (_.get(queue_ticket, 'id') != first_id && _.get(queue_ticket, 'id') == _.get(ticket, 'id')));
+				_.remove(this.queue_to_play, (queue_ticket) => (_.get(queue_ticket, 'id') != first_id && _.get(queue_ticket, 'id') == id));
 
 				this.emit('queue.change');
 			};
@@ -53,6 +58,9 @@ class RoomdisplayWorkstation extends BaseWorkstation {
 		}, (event) => {
 			console.log('ticket called with data:', event);
 			let event_data = event.data;
+			let id = _.get(event_data.ticket, 'id');
+
+
 			let ticket = new Ticket(event_data.ticket);
 			ticket.workstation = event_data.workstation;
 			ticket.voice = event_data.voice;
@@ -111,7 +119,24 @@ class RoomdisplayWorkstation extends BaseWorkstation {
 		return connection.request('/roomdisplay/report-played', {
 			ticket: ticket.getId(),
 			success: true
-		}).then(() => this.clearQueueToPlay(ticket));
+		}).then(({
+			success,
+			ticket: updated_ticket
+		}) => {
+			console.log('success', success, 'ticket', updated_ticket);
+			this.checkTicketState(updated_ticket);
+			return this.clearQueueToPlay(ticket);
+		});
+	}
+	checkTicketState(ticket) {
+		let he = this.fields.history_enabled;
+
+		if ((he === false || _.isArray(he)) && ticket.state == 'closed') {
+			let id = _.get(ticket, 'id');
+
+			this.queue = _.filter(this.queue, queue_ticket => _.get(queue_ticket, 'id') != id);
+			this.emit('queue.change');
+		}
 	}
 	clearQueueToPlay(ticket) {
 		_.remove(this.queue_to_play, queue_ticket => this.isSameID(queue_ticket, ticket) && this.isSameWorkstation(queue_ticket, ticket));

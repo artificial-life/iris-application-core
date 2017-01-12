@@ -40,6 +40,15 @@ class ReportsWorkstation extends BaseWorkstation {
 			}
 		}];
 
+		_.forEach(departments, (department) => {
+			let params = {
+				department: department
+			};
+			request_shared.push({
+				name: 'departments',
+				params: params
+			})
+		});
 
 		return SharedEntities.request(request_shared);
 	}

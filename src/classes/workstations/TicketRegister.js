@@ -9,6 +9,8 @@ let BaseWorkstation = require('./BaseWorkstation.js');
 
 let connection = new Connection();
 
+
+
 class TicketRegister extends BaseWorkstation {
 	constructor(user, type) {
 		super(user, type);
@@ -20,13 +22,40 @@ class TicketRegister extends BaseWorkstation {
 
 		return request.then((data) => data.success ? this.makeTicket(data.ticket) : false);
 	}
-	makeTicket(data) {
-		let ticket = new Ticket(data, this);
+	_applyCustomFieldsTransform(data) {
+		let custom_fields = data.workstation.custom_fields || {};
+
+		_.forEach(custom_fields, (field, name) => {
+			if (field === false) {
+				data.fields_model[name].include = false;
+			} else if (field === true && data.fields_model[name]) {
+				data.fields_model[name].include = true;
+			} else if (_.isPlainObject(field))
+				data.fields_model[name] = field;
+		});
+	}
+	makeTicket(data, hide_private_fields) {
+		let ticket_data = hide_private_fields ? this.detachPrivateFields(data) : this.attachPrivateFields(data);
+		let ticket = new Ticket(ticket_data, this);
 		return ticket;
 	}
-	refreshTicket(service_id) {
+	detachPrivateFields(data) {
+		_.forEach(data.user_info_description, (value, name) => {
+			(!!value.private) && _.unset(data.user_info, name);
+		})
 
+		return data;
+	}
+	attachPrivateFields(data) {
+		_.forEach(this.private_fields, (value, name) => {
+			data.user_info[name] = value;
+		})
+
+		return data;
+	}
+	refreshTicket(service_id) {
 		let priorities = this.current_ticket_data ? _.cloneDeep(this.current_ticket_data.priority) : {};
+
 		this.current_ticket_data = {
 			service_count: _.isArray(service_id) ? _.fill(Array(service_id.length), 1) : 1,
 			priority: priorities
@@ -48,7 +77,7 @@ class TicketRegister extends BaseWorkstation {
 			ticket: ticket_id,
 			workstation: this.getId(),
 			reason: 'terminal registration'
-		}).then((response) => this.transformPrintData(response));
+		}).then((response) => this.transformPrintData(response, true));
 	}
 	checkAvailability(fields) {
 		let copy = _.cloneDeep(fields);
@@ -68,43 +97,61 @@ class TicketRegister extends BaseWorkstation {
 		let copy = this.postprocessFields(fields, fields_model);
 		let module = is_live ? 'queue' : 'prebook';
 
-		return connection.request('/' + module + '/ticket-confirm', copy).then((response) => this.transformPrintData(response));
+		return connection.request('/' + module + '/ticket-confirm', copy).then((response) => {
+			console.log(response);
+			return this.transformPrintData(response);
+		});
 	}
-	postprocessFields(fields, fields_model) {
+	createPrivateFields(fields, fields_model) {
 		let copy = _.cloneDeep(fields);
-		copy.workstation = copy.workstation || this.getId();
+		this.private_fields = {};
 
-		if (_.isEmpty(fields_model)) return copy;
+		_.forEach(fields_model, (model, key) => {
+			let name = model.key || key;
+			let is_private = !!model.private;
+			if (!is_private) return true;
 
-		_.forEach(fields_model, (model, name) => {
-			if (!model.hasOwnProperty('label')) return true;
-
-			let prop_name = model.key || name;
-
-			if (!copy.hasOwnProperty(prop_name)) return true;
-
-			let value = copy[prop_name];
-			copy[prop_name] = {
-				value: value,
-				label: model.label
-			};
+			let value = copy[name];
+			let hash = md5(value);
+			this.private_fields[name] = value;
+			copy[name] = hash;
 		});
 
 		return copy;
 	}
+	makeInfoDescription(fields_model) {
+
+		return _.transform(fields_model, (acc, field, name) => {
+			acc[field.key || name] = {
+				private: !!field.private,
+				label: field.label
+			};
+		}, {});
+	}
+	postprocessFields(fields, fields_model) {
+		let copy = this.createPrivateFields(fields, fields_model);
+
+		_.unset(copy, 'start');
+		_.unset(copy, 'end');
+
+		copy.workstation = copy.workstation || this.getId();
+		copy.user_info_description = this.makeInfoDescription(fields_model);
+
+		return copy;
+	}
 	prebookObserve(data) {
-		data.workstation = this.getId();
+		data.workstation = data.workstation || this.getId();
 		return connection.request('/prebook/ticket-observe', data)
 	}
 	prebookAvailable(data) {
 		data.workstation = data.workstation || this.getId();
 		return connection.request('/prebook/available-days', data)
 	}
-	transformPrintData(response) {
-		// console.log('Confirm', response);
-		if (!_.isEmpty(response.ticket)) {
-			response.ticket = _.isArray(response.ticket) ? _.map(response.ticket, ticket => this.makeTicket(ticket)) : this.makeTicket(response.ticket);
+	transformPrintData(response, hide_private_fields) {
+		if (!_.isEmpty(response.ticket) && response.success) {
+			response.ticket = _.isArray(response.ticket) ? _.map(response.ticket, ticket => this.makeTicket(ticket, hide_private_fields)) : this.makeTicket(response.ticket, hide_private_fields);
 		}
+
 		return response;
 	}
 	addPriority(type, certificate_id) {
@@ -120,4 +167,4 @@ class TicketRegister extends BaseWorkstation {
 	}
 }
 
-module.exports = TicketRegister;;
+module.exports = TicketRegister;
