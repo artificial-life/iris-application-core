@@ -29,7 +29,7 @@ class CallCenterWorkstation extends TicketRegister {
 		return Promise.all(boot).then(result => {
 			this.terminals = _.reduce(result, (acc, term) => {
 				if (!~departments.indexOf(term.workstation.attached_to)) return acc;
-				this._applyCustomFieldsTransform(term);
+				this._processCustomFields(term);
 
 				acc.push(term);
 				return acc;

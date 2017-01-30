@@ -79,6 +79,11 @@ class Ticket {
 
 		return secondsToFullTime(now - start_time);
 	}
+	isToday() {
+		let tz = SharedEntities.get('timezone');
+		let time = (Date.now() - tz.offset);
+		return moment(time).tz(tz.name).format('YYYY-MM-DD') == this.dedicated_date;
+	}
 	secondsFromDayStart(time) {
 		let tz = SharedEntities.get('timezone');
 		time = time || (Date.now() - tz.offset);

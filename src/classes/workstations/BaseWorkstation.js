@@ -12,7 +12,9 @@ let connection = new Connection();
 let event_tempaltes = {
 	"default": "{event_name}.{org_chain}.{owner_id}",
 	"office.average-waiting-time": "{event_name}.{org_chain}",
-	"office.max-waiting-time": "{event_name}.{org_chain}"
+	"office.max-waiting-time": "{event_name}.{org_chain}",
+	"workstation.change-state": "{event_name}.{org_chain}",
+	"service-stats": "{event_name}.{org_chain}"
 };
 
 class BaseWorkstation extends EventEmitter2 {
@@ -26,6 +28,7 @@ class BaseWorkstation extends EventEmitter2 {
 	}
 	init(id, data) {
 		this.label = data.label;
+		this.id = id;
 		this.id = id;
 		this.fields = data;
 		console.log('init', id);

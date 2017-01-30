@@ -20,5 +20,6 @@ module.exports = {
 	"History": require("./classes/access-objects/History.js"),
 	"User": require("./classes/User.js"),
 	"Ticket": require("./classes/ticket.js"),
-	"Errors": require("./classes/access-objects/Errors.js")
+	"Errors": require("./classes/access-objects/Errors.js"),
+	"Reports": require("./classes/Reports/reports.js")
 };

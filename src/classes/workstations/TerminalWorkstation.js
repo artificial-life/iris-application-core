@@ -17,7 +17,7 @@ class TerminalWorkstation extends TicketRegister {
 	}
 	bootstrap(data) {
 		console.log('TERMINAL BOOT:', data);
-		this._applyCustomFieldsTransform(data);
+		this._processCustomFields(data);
 		this.service_views = data.views;
 		this.fields_model = data.fields_model;
 
