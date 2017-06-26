@@ -69,7 +69,7 @@ class SharedEntities {
 		let uri = makeUri(entity_name);
 		return connection.request(uri, params).then((data) => {
 			this.store(data.namespace, data.entities, method);
-			return true;
+			return data;
 		});
 	}
 	static on(update_event, cb) {

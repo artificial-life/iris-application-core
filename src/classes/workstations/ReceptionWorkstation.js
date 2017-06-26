@@ -14,7 +14,7 @@ class ReceptionWorkstation extends TicketManager {
 	constructor(user) {
 		super(user, 'reception');
 
-		this.bank = new Bank(connection);
+		this.bank = new Bank(connection, this);
 		this.wbank = new WBank(connection);
 		this.report = new Report(this.bank);
 		this.helper = new Helper(this.report);
@@ -36,6 +36,7 @@ class ReceptionWorkstation extends TicketManager {
 
 			let ticket = this.makeTicket(response.data);
 			this.emit('ticket-changed', ticket);
+			// console.log('Ticket changed', ticket);
 			this.bank.update(ticket);
 		};
 
@@ -49,6 +50,8 @@ class ReceptionWorkstation extends TicketManager {
 		_.forEach(departments, department => {
 			let office = _.get(SharedEntities.get('departments', department), 'unit_of');
 			if (!office) return true;
+
+			let ticket_ttl = _.get(SharedEntities.get('departments', department), 'frontend_cache.ticket_ttl')
 
 			this.subscribe({
 				name: 'ticket.*',
@@ -77,6 +80,7 @@ class ReceptionWorkstation extends TicketManager {
 
 			this.bank.getAll(department);
 			this.wbank.getAll(department);
+			this.bank.setTTL(ticket_ttl);
 		});
 	}
 	getShared() {

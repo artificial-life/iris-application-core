@@ -15,7 +15,6 @@ class RoomdisplayWorkstation extends BaseWorkstation {
 		this.queue = [];
 		this.queue_to_play = [];
 		this.queue_length = 40;
-
 	}
 	middleware() {
 		this.default_voice_duration = this.fields.default_voice_duration || 40000;
@@ -51,24 +50,32 @@ class RoomdisplayWorkstation extends BaseWorkstation {
 			}, remove_from_queue));
 		}
 
+		return connection.request('/shared-entities/organization-chain', {
+			workstation: this.getId()
+		}).then(data => {
+			const last = _.last(_.keys(data.entities));
+			const office = _.get(data.entities, [last, 'id']);
+			const department = this.fields.attached_to;
 
-		return this.subscribe({
-			name: 'roomdisplay.command',
-			owner_id: this.getId()
-		}, (event) => {
-			console.log('ticket called with data:', event);
-			let event_data = event.data;
-			let id = _.get(event_data.ticket, 'id');
+			return this.subscribe({
+				name: 'roomdisplay.command',
+				department: department,
+				office: office,
+				owner_id: this.getId()
+			}, (event) => {
+				console.log('ticket called with data:', event);
+				let event_data = event.data;
+				let id = _.get(event_data.ticket, 'id');
 
+				let ticket = this.makeTicket(event_data.ticket);
+				ticket.workstation = event_data.workstation;
+				ticket.voice = event_data.voice;
+				ticket.voice_duration = event_data.voice_duration || this.default_voice_duration;
 
-			let ticket = new Ticket(event_data.ticket);
-			ticket.workstation = event_data.workstation;
-			ticket.voice = event_data.voice;
-			ticket.voice_duration = event_data.voice_duration || this.default_voice_duration;
-
-			this.addToQueue(ticket);
-			this.emit('queue.change');
-		})
+				this.addToQueue(ticket);
+				this.emit('queue.change');
+			});
+		});
 	}
 	getShared() {
 		let ws_params = {
@@ -89,6 +96,7 @@ class RoomdisplayWorkstation extends BaseWorkstation {
 	}
 	makeTicket(data) {
 		let ticket = new Ticket(data, this);
+		ticket.origin = this.id;
 		return ticket;
 	}
 	onChange(cb) {

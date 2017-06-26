@@ -31,12 +31,18 @@ class TerminalWorkstation extends TicketRegister {
 		let ws_params = {
 			workstation: this.getId()
 		};
+
 		let request_shared = [{
 			name: 'timezone',
 			params: ws_params
 		}, {
 			name: 'office',
 			params: ws_params
+		}, {
+			name: 'departments',
+			params: {
+				department: this.fields.attached_to
+			}
 		}, {
 			name: 'services',
 			params: ws_params
@@ -48,7 +54,10 @@ class TerminalWorkstation extends TicketRegister {
 			params: ws_params
 		}];
 
-		return SharedEntities.request(request_shared);
+		return SharedEntities.request(request_shared).then(res => {
+			this.myOffice = _.find(res, ['namespace', 'office']).entities;
+			return res;
+		});
 	}
 	attachValidators() {
 		_.forEach(this.fields_model, (field) => {

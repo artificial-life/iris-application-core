@@ -10,6 +10,9 @@ let SharedEntities = require('./access-objects/SharedEntities.js');
 
 class Ticket {
 	constructor(data, queue) {
+
+		if (data instanceof Ticket) return data;
+
 		this.queue = queue;
 		_.defaults(this, data);
 		this.utc_booking_date = data.booking_date;
@@ -67,8 +70,15 @@ class Ticket {
 			end: secondsToTime(this.time_description[1])
 		};
 	}
+	get was_routed() {
+		if (!!this.inherits) {
+			return _.size(_.filter(this.history, ["event_name", "route"])) > 1;
+		}
+
+		return this.hasEvent("route");
+	}
 	getWaitingTime() {
-		if (this.state != "registered" || this.hasEvent("restore")) {
+		if (this.state != "registered" || this.hasEvent("restore") || this.hasEvent("route")) {
 			return "";
 		}
 
@@ -152,4 +162,4 @@ class Ticket {
 
 
 
-module.exports = Ticket;;
+module.exports = Ticket;

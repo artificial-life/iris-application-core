@@ -27,12 +27,23 @@ class User extends EventEmitter2 {
 		this.fields = {};
 		this.workstation_types = allowed_types;
 		this.occupied_workstations = [];
+		this.multiuser = false;
+		this.use_default_ws = true;
 	}
 	getId() {
 		return this.fields.id;
 	}
+	useDefault(value) {
+		this.use_default_ws = value;
+	}
+	setMulti() {
+		this.multiuser = true;
+	}
 	getWorkstation(type) {
 		return _.find(this.occupied_workstations, (ws) => ws.type == type);
+	}
+	getAllWorkstationsByType(type) {
+		return _.filter(this.occupied_workstations, (ws) => ws.type == type);
 	}
 	getAvailableWorkstationTypes() {
 		//@NOTE: this should be reworked!
@@ -188,9 +199,11 @@ class User extends EventEmitter2 {
 		var available = this.getAvailableWorkstations();
 		let arm_id = _.chain(this.workstation_types)
 			.castArray()
-			.reduce((acc, type) => {
+			.flatMap(type => {
 				let ws = settings.getItem(type + '_arm_id');
-
+				return _.split(ws, ',');
+			})
+			.reduce((acc, ws) => {
 				if (ws && !available[ws]) throw new Error('ws anavailable');
 
 				ws && acc.push(ws);
@@ -198,7 +211,7 @@ class User extends EventEmitter2 {
 			}, [])
 			.value();
 
-		return _.concat(arm_id, selected)
+		return this.use_default_ws ? _.concat(arm_id, selected) : arm_id;
 	}
 	getSelectedWorkstationTypes() {
 		var selected = this.getSelectedWorkstation();
@@ -213,10 +226,13 @@ class User extends EventEmitter2 {
 	}
 	getDefaultWorkstaions() {
 		//@TODO: work with "workstation_types" like with an array
-		console.log('Allowed types:', this.workstation_types);
 		let available = this.fields.workstations.available;
 
 		let selected = this.getSelectedWorkstation();
+
+		if (this.multiuser) {
+			return selected;
+		}
 
 		let arms_by_type = _.reduce(selected, (acc, ws) => {
 			let av = available[ws];
@@ -238,11 +254,14 @@ class User extends EventEmitter2 {
 		//@NOTE: User should be active after login or ws switch
 		this.fields.paused = false;
 
-		let workstations = this.fields.workstations.available;
+		let workstations = this.getAvailableWorkstations();
 		let targets = selected_workstation || this.getDefaultWorkstaions();
+
+
 		let init = _.map(targets, (ws_id) => {
 			let init_data = workstations[ws_id];
-			if (_.isEmpty(init_data)) throw new Error('WS anavailable');
+
+			if (_.isEmpty(init_data)) throw new Error('Init: WS anavailable');
 
 			let Model = discover(init_data.device_type);
 			let WS = new Model(this);
